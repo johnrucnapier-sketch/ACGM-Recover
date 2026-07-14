@@ -1,5 +1,5 @@
 {
-  "file_count": 47,
+  "file_count": 48,
   "files": [
     {
       "license": "MIT",
@@ -39,6 +39,13 @@
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
+      "path": "CLAUDE.md",
+      "sha256": "ce9fc507e73e7214fa8c589a4309cd6634f861cf2daaedc06dbe8dba8c0e0634",
+      "size": 275
+    },
+    {
+      "license": "CC-BY-4.0",
+      "mode": "0644",
       "path": "CONTRIBUTING.md",
       "sha256": "d799001412ae248b738949f93542dd60ee44f5b11de79821d730d30b4aae7365",
       "size": 975
@@ -61,22 +68,22 @@
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "LICENSING.md",
-      "sha256": "bf401d72272aace70cbdcfbafad518c3bf26a83faed178e50c251eb6c0e86062",
-      "size": 637
+      "sha256": "f5df3c5a158bb80377f2802d753ff3bfcb15099257c948985927f6b42854033f",
+      "size": 650
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "README.en.md",
-      "sha256": "61da6eac3929e9f958e42d2b35ad49f8100e93f2f0260fc132f445848df93f6a",
-      "size": 9300
+      "sha256": "e06c321e78a563b40e24b909ad83de855e256a4ccd292cb9d32ea480fbf0e9b5",
+      "size": 9588
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "README.md",
-      "sha256": "5dd01a4d4c806de9c8094f76785042e30988b33c34d9aadfe0ea25c94547aa85",
-      "size": 11201
+      "sha256": "94f0763765b4a29ca2ff61f6d134e21427220e1f8b3a9d9efb9fe70199eaef6c",
+      "size": 11481
     },
     {
       "license": "CC-BY-4.0",
@@ -124,8 +131,8 @@
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "docs/INSTALLATION.md",
-      "sha256": "099dbe2fbb256d9638ba43ed5799a2d31f32cdde303e4256826b2cd3354573fb",
-      "size": 6988
+      "sha256": "dc7d9e7923a41b81872c18d4dc5f5aa3d68523f6a2d16d96f947e4aba2d94424",
+      "size": 7351
     },
     {
       "license": "CC-BY-4.0",
@@ -159,8 +166,8 @@
       "license": "MIT",
       "mode": "0755",
       "path": "scripts/generate_package_manifest.py",
-      "sha256": "a73559e97137e8835ac07eeda71a63ea1c96bc9c4d9334da9d2171c027fe6ca4",
-      "size": 3327
+      "sha256": "2090c48936ecde709ca26771b385e77c93397671b80d18ac697f1aa31a4b0e48",
+      "size": 3348
     },
     {
       "license": "MIT",

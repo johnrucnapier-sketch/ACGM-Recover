@@ -33,6 +33,11 @@ It cannot restore an inaccessible vendor-side Session or recover an account. It 
 
 Only Python 3.10+ (including pip) and Git are required. The installer validates `PACKAGE_MANIFEST.json`, builds a controlled local wheel in a temporary directory using only the Python standard library, then performs an offline user installation. It does not require setuptools/wheel, scan evidence, inspect an account, download dependencies, or select a route.
 
+When an Agent clones and installs in the same task, instruct it to read `AGENTS.md`
+and `SECURITY.md` explicitly after the clone. A newly downloaded instruction file does
+not automatically reload an already-running Agent, and Git clone does not and should
+not execute installation code.
+
 ```bash
 git clone https://github.com/johnrucnapier-sketch/ACGM-Recover.git
 cd ACGM-Recover

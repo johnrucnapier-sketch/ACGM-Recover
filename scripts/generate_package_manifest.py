@@ -35,6 +35,7 @@ def included_files() -> list[Path]:
 def license_for(relative: str) -> str:
     docs = {
         "AGENTS.md",
+        "CLAUDE.md",
         "README.md",
         "README.en.md",
         "SECURITY.md",

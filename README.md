@@ -33,6 +33,10 @@ ACGM Recover 不是事前备份，也不是把聊天导成 HTML。
 
 安装前只要求 Python 3.10+（含 pip）和 Git。安装器会先校验 `PACKAGE_MANIFEST.json`，再用 Python 标准库在临时目录构建受控本地 wheel，并以当前用户身份离线安装；不要求预装 setuptools/wheel，不会扫描证据、读取账号、联网下载依赖或自动选择路线。
 
+让 Agent 在同一任务中代为下载和安装时，必须明确要求它在 clone 完成后主动读取
+`AGENTS.md` 与 `SECURITY.md`。新下载的仓库规则不会让已经运行中的 Agent 自动重载，
+Git clone 本身也不会、且不应自动执行安装代码。
+
 ```bash
 git clone https://github.com/johnrucnapier-sketch/ACGM-Recover.git
 cd ACGM-Recover

@@ -64,6 +64,12 @@ An agent may complete clone and installation in one authorized task, but only wh
 
 > Clone only `https://github.com/johnrucnapier-sketch/ACGM-Recover.git` into a new directory. Confirm the owner/repository and current commit, read `SECURITY.md` and `AGENTS.md`, run `python scripts/bootstrap.py --dry-run`, and if the manifest and prerequisites pass, run `python scripts/bootstrap.py`. Show me the final `guide` report. Do not run `discover`, inspect account data, infer a model/provider, choose a route, or read any transcript until I explicitly confirm the next step.
 
+Repository instruction files are not an execution trigger. Codex builds its instruction
+chain when a task starts, so an already-running task must explicitly read the newly
+cloned `AGENTS.md`; Claude Code loads the thin `CLAUDE.md`, which imports that same
+contract. Other agents must use the README instruction above. Git clone itself never
+runs bootstrap code.
+
 如果用户在同一次授权中已经明确允许“下载官方仓库并执行本地安装”，Agent 可以在 dry-run 和 manifest 校验通过后继续安装，不必人为拆成很多操作。但安装结束必须停在 `selection_required`；不能把“找到 Claude/Codex CLI”当成路线选择依据。
 
 For a release tag, a higher-assurance agent should clone that exact tag or commit instead of an unpinned moving branch. The manifest detects accidental mismatch; it is not a digital signature and cannot authenticate a maliciously replaced repository.
