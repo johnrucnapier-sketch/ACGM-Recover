@@ -31,7 +31,7 @@ ACGM Recover 不是事前备份，也不是把聊天导成 HTML。
 
 ## 从 GitHub 安装
 
-安装前要求 Python 3.10+、pip、`setuptools>=61` 和 Git。安装器会先校验 `PACKAGE_MANIFEST.json`，然后以当前用户身份离线安装；不会扫描证据、读取账号、联网下载依赖或自动选择路线。
+安装前只要求 Python 3.10+（含 pip）和 Git。安装器会先校验 `PACKAGE_MANIFEST.json`，再用 Python 标准库在临时目录构建受控本地 wheel，并以当前用户身份离线安装；不要求预装 setuptools/wheel，不会扫描证据、读取账号、联网下载依赖或自动选择路线。
 
 ```bash
 git clone https://github.com/johnrucnapier-sketch/ACGM-Recover.git

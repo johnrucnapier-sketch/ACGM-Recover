@@ -150,12 +150,16 @@ def check_onboarding_contract(errors: list[str], passed: list[str]) -> None:
     onboarding = (ROOT / "src/acgm_recover/onboarding.py").read_text(encoding="utf-8")
     cli = (ROOT / "src/acgm_recover/cli.py").read_text(encoding="utf-8")
     installation = (ROOT / "docs/INSTALLATION.md").read_text(encoding="utf-8")
+    security = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
+    agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
     required_bootstrap = (
         "--no-deps",
         "--no-build-isolation",
         "--no-index",
         "same_version_reinstall",
         "--force-reinstall",
+        "VERIFIED_LOCAL_WHEEL",
+        "stdlib_wheel_plus_pip",
         "upgrade_confirmation_required",
         "downgrade_refused",
         "shell=False",
@@ -174,6 +178,8 @@ def check_onboarding_contract(errors: list[str], passed: list[str]) -> None:
         or any(term not in onboarding for term in required_onboarding)
         or "recovery_runtime_not_supported_on_platform" not in cli
         or "Windows boundary" not in installation
+        or "force-reinstall" not in security
+        or "force-reinstalled" not in agents
     ):
         errors.append("onboarding_contract_invalid")
     else:

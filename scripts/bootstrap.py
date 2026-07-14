@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import csv
 import hashlib
-import importlib.metadata
+import io
 import json
 import os
 import re
@@ -13,25 +15,19 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = "acgm-recover"
 MINIMUM_PYTHON = (3, 10)
-MINIMUM_SETUPTOOLS = (61, 0, 0)
 EXCLUDED_SOURCE_PARTS = {".git", "__pycache__", ".pytest_cache", "build", "dist"}
 EXCLUDED_SOURCE_NAMES = {".DS_Store", "PACKAGE_MANIFEST.json"}
 
 
 def _display_command(arguments: list[str]) -> list[str]:
     return ["PYTHON" if index == 0 else value for index, value in enumerate(arguments)]
-
-
-def _version_tuple(value: str) -> tuple[int, ...]:
-    numbers = re.findall(r"\d+", value)
-    parsed = [int(number) for number in numbers[:3]] if numbers else [0]
-    return tuple((parsed + [0, 0, 0])[:3])
 
 
 def _installed_version() -> str | None:
@@ -119,39 +115,43 @@ def _run(arguments: list[str], *, cwd: Path = ROOT) -> subprocess.CompletedProce
     )
 
 
-def _manifest_check() -> tuple[bool, str | None]:
+def _verified_manifest_payloads() -> tuple[dict[str, bytes] | None, str | None]:
+    """Return one manifest-verified byte snapshot for downstream use."""
+
     manifest_path = ROOT / "PACKAGE_MANIFEST.json"
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         expected_version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     except (OSError, json.JSONDecodeError):
-        return False, "source_manifest_unreadable"
+        return None, "source_manifest_unreadable"
     if (
         manifest.get("package") != PACKAGE
         or manifest.get("version") != expected_version
         or manifest.get("file_count") != len(manifest.get("files", []))
     ):
-        return False, "source_manifest_contract_invalid"
+        return None, "source_manifest_contract_invalid"
     seen: set[str] = set()
+    verified: dict[str, bytes] = {}
     for row in manifest.get("files", []):
         if not isinstance(row, dict):
-            return False, "source_manifest_contract_invalid"
+            return None, "source_manifest_contract_invalid"
         relative = row.get("path")
         if not isinstance(relative, str) or "\\" in relative or relative in seen:
-            return False, "source_manifest_path_invalid"
+            return None, "source_manifest_path_invalid"
         pure = PurePosixPath(relative)
         if pure.is_absolute() or not pure.parts or any(part in {"", ".", ".."} for part in pure.parts):
-            return False, "source_manifest_path_invalid"
+            return None, "source_manifest_path_invalid"
         seen.add(relative)
         path = ROOT.joinpath(*pure.parts)
         if path.is_symlink() or not path.is_file():
-            return False, "source_manifest_file_missing"
+            return None, "source_manifest_file_missing"
         try:
             payload = path.read_bytes()
         except OSError:
-            return False, "source_manifest_file_unreadable"
+            return None, "source_manifest_file_unreadable"
         if row.get("size") != len(payload) or row.get("sha256") != hashlib.sha256(payload).hexdigest():
-            return False, "source_manifest_mismatch"
+            return None, "source_manifest_mismatch"
+        verified[relative] = payload
     actual: set[str] = set()
     for path in ROOT.rglob("*"):
         relative_path = path.relative_to(ROOT)
@@ -163,41 +163,110 @@ def _manifest_check() -> tuple[bool, str | None]:
         if path.name in EXCLUDED_SOURCE_NAMES or path.suffix in {".pyc", ".pyo"}:
             continue
         if path.is_symlink():
-            return False, "source_manifest_symlink_not_allowed"
+            return None, "source_manifest_symlink_not_allowed"
         if path.is_file():
             actual.add(relative_path.as_posix())
     if actual != seen:
-        return False, "source_manifest_file_set_mismatch"
-    return True, None
+        return None, "source_manifest_file_set_mismatch"
+    return verified, None
+
+
+def _manifest_check() -> tuple[bool, str | None]:
+    verified, error = _verified_manifest_payloads()
+    return verified is not None, error
+
+
+def _wheel_version(source_version: str) -> str:
+    """Convert the controlled release form to its PEP 440 wheel spelling."""
+
+    match = re.fullmatch(r"(\d+\.\d+\.\d+)(?:-rc\.(\d+))?", source_version)
+    if not match:
+        raise ValueError("source_version_not_wheel_compatible")
+    stable, rc = match.groups()
+    return stable if rc is None else f"{stable}rc{rc}"
+
+
+def _build_offline_wheel(directory: Path, source_version: str) -> Path:
+    """Build this pure-Python package with stdlib only after manifest verification."""
+
+    verified, error = _verified_manifest_payloads()
+    if verified is None:
+        raise ValueError(error or "source_manifest_verification_failed")
+    if verified.get("VERSION", b"").decode("utf-8", "strict").strip() != source_version:
+        raise ValueError("source_version_changed_after_plan")
+    wheel_version = _wheel_version(source_version)
+    distribution = "acgm_recover"
+    dist_info = f"{distribution}-{wheel_version}.dist-info"
+    members: dict[str, bytes] = {}
+    package_prefix = "src/acgm_recover/"
+    for relative, payload in sorted(verified.items()):
+        if relative.startswith(package_prefix):
+            members[relative.removeprefix("src/")] = payload
+    if "acgm_recover/__init__.py" not in members or "acgm_recover/cli.py" not in members:
+        raise ValueError("package_source_missing")
+
+    members[f"{dist_info}/METADATA"] = (
+        "Metadata-Version: 2.1\n"
+        "Name: acgm-recover\n"
+        f"Version: {wheel_version}\n"
+        "Summary: Offline, evidence-first Claude Code project recovery\n"
+        "Requires-Python: >=3.10\n"
+        "License: MIT for code; CC-BY-4.0 for documentation. See LICENSING.md.\n"
+        "\n"
+    ).encode("utf-8")
+    members[f"{dist_info}/WHEEL"] = (
+        "Wheel-Version: 1.0\n"
+        f"Generator: ACGM Recover bootstrap {source_version}\n"
+        "Root-Is-Purelib: true\n"
+        "Tag: py3-none-any\n"
+        "\n"
+    ).encode("utf-8")
+    members[f"{dist_info}/entry_points.txt"] = (
+        "[console_scripts]\n"
+        "acgm-recover = acgm_recover.cli:main\n"
+    ).encode("utf-8")
+    try:
+        members[f"{dist_info}/licenses/LICENSE-CODE"] = verified["LICENSE-CODE"]
+    except KeyError as error:
+        raise ValueError("license_source_missing") from error
+
+    record_path = f"{dist_info}/RECORD"
+    record_buffer = io.StringIO(newline="")
+    writer = csv.writer(record_buffer, lineterminator="\n")
+    for name, payload in sorted(members.items()):
+        digest = base64.urlsafe_b64encode(hashlib.sha256(payload).digest()).rstrip(b"=").decode("ascii")
+        writer.writerow((name, f"sha256={digest}", str(len(payload))))
+    writer.writerow((record_path, "", ""))
+    members[record_path] = record_buffer.getvalue().encode("utf-8")
+
+    wheel_path = directory / f"{distribution}-{wheel_version}-py3-none-any.whl"
+    with zipfile.ZipFile(wheel_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for name, payload in sorted(members.items()):
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o644 << 16
+            archive.writestr(info, payload)
+    return wheel_path
 
 
 def _prerequisites() -> dict[str, Any]:
     python_supported = sys.version_info >= MINIMUM_PYTHON
     git_available = shutil.which("git") is not None
     pip_check = _run([sys.executable, "-m", "pip", "--version"])
-    try:
-        setuptools_version = importlib.metadata.version("setuptools")
-    except importlib.metadata.PackageNotFoundError:
-        setuptools_version = None
-    setuptools_supported = bool(
-        setuptools_version and _version_tuple(setuptools_version) >= MINIMUM_SETUPTOOLS
-    )
     manifest_ok, manifest_error = _manifest_check()
     return {
         "ok": (
             python_supported
             and git_available
             and pip_check.returncode == 0
-            and setuptools_supported
             and manifest_ok
         ),
         "python_supported": python_supported,
         "python_version": ".".join(str(part) for part in sys.version_info[:3]),
         "pip_available": pip_check.returncode == 0,
         "git_available": git_available,
-        "setuptools_supported": setuptools_supported,
-        "setuptools_version": setuptools_version,
-        "minimum_setuptools": ".".join(str(part) for part in MINIMUM_SETUPTOOLS),
+        "installer_backend": "stdlib_wheel_plus_pip",
+        "setuptools_or_wheel_package_required": False,
         "source_manifest_ok": manifest_ok,
         "source_manifest_error": manifest_error,
         "network_used": False,
@@ -305,7 +374,7 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
     version_action, version_allowed = _version_policy(previous_version, source_version, upgrade)
     if version_action == "same_version_reinstall":
         command.append("--force-reinstall")
-    command.append(".")
+    command.append("VERIFIED_LOCAL_WHEEL")
     base: dict[str, Any] = {
         "tool": "ACGM Recover bootstrap",
         "dry_run": dry_run,
@@ -320,6 +389,7 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
         "evidence_scan_performed": False,
         "network_used": False,
         "installation_authorizes_discovery": False,
+        "installer_backend": "stdlib_wheel_plus_pip",
     }
     if not prerequisites["ok"]:
         base.update(
@@ -327,7 +397,7 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
                 "ok": False,
                 "status": "prerequisites_failed",
                 "guidance": (
-                    "Install Python 3.10+, Git, pip, and setuptools>=61 separately; then obtain a clean "
+                    "Install Python 3.10+, Git, and pip separately; then obtain a clean "
                     "official source tree whose PACKAGE_MANIFEST.json matches."
                 ),
             }
@@ -351,7 +421,23 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
         )
         return base, 0
 
-    process = _run(command)
+    try:
+        with tempfile.TemporaryDirectory(prefix="acgm-recover-wheel-") as temporary:
+            wheel_path = _build_offline_wheel(Path(temporary), source_version)
+            actual_command = [
+                str(wheel_path) if value == "VERIFIED_LOCAL_WHEEL" else value
+                for value in command
+            ]
+            process = _run(actual_command)
+    except (OSError, ValueError, zipfile.BadZipFile) as error:
+        base.update(
+            {
+                "ok": False,
+                "status": "offline_wheel_build_failed",
+                "error_code": type(error).__name__,
+            }
+        )
+        return base, 3
     if process.returncode != 0:
         base.update(
             {

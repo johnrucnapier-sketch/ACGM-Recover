@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 import tempfile
+import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,6 +44,38 @@ class BootstrapTests(unittest.TestCase):
     def test_source_manifest_is_verified_before_install(self) -> None:
         ok, error = bootstrap._manifest_check()
         self.assertTrue(ok, error)
+
+    def test_stdlib_wheel_is_complete_and_does_not_need_build_packages(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            wheel = bootstrap._build_offline_wheel(Path(tmp), "0.1.0-rc.1")
+            with zipfile.ZipFile(wheel) as archive:
+                names = set(archive.namelist())
+                metadata = archive.read(
+                    "acgm_recover-0.1.0rc1.dist-info/METADATA"
+                ).decode("utf-8")
+        self.assertIn("acgm_recover/__main__.py", names)
+        self.assertIn("acgm_recover-0.1.0rc1.dist-info/RECORD", names)
+        self.assertIn("Version: 0.1.0rc1", metadata)
+        self.assertNotIn("setuptools", "\n".join(names))
+
+    def test_wheel_uses_manifest_verified_snapshot_not_a_second_source_read(self) -> None:
+        verified, error = bootstrap._verified_manifest_payloads()
+        self.assertIsNone(error)
+        self.assertIsNotNone(verified)
+        snapshot = dict(verified or {})
+        snapshot["src/acgm_recover/__init__.py"] = b"SNAPSHOT_SENTINEL = True\n"
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            mock.patch.object(
+                bootstrap,
+                "_verified_manifest_payloads",
+                return_value=(snapshot, None),
+            ),
+        ):
+            wheel = bootstrap._build_offline_wheel(Path(tmp), "0.1.0-rc.1")
+            with zipfile.ZipFile(wheel) as archive:
+                installed = archive.read("acgm_recover/__init__.py")
+        self.assertEqual(installed, b"SNAPSHOT_SENTINEL = True\n")
 
     def test_unlisted_source_file_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -92,6 +125,8 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn("--no-deps", payload["install_command_argv"])
         self.assertIn("--no-build-isolation", payload["install_command_argv"])
         self.assertIn("--no-index", payload["install_command_argv"])
+        self.assertIn("VERIFIED_LOCAL_WHEEL", payload["install_command_argv"])
+        self.assertEqual(payload["installer_backend"], "stdlib_wheel_plus_pip")
         if payload["install_scope"] == "virtual_environment":
             self.assertNotIn("--user", payload["install_command_argv"])
         else:

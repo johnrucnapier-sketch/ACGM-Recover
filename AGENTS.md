@@ -8,7 +8,7 @@ ACGM Recover is an offline, evidence-first recovery tool. Agents working in this
 - Never inspect tokens, cookies, OAuth state, account caches, provider identity, or displayed model names to choose a route.
 - A `--route` argument records an explicit CLI input; the agent must still show it to the user and obtain confirmation before recovery work.
 - Do not add runtime networking, telemetry, update checks, dependency downloads, or shell-based command construction.
-- Keep bootstrap version behavior explicit: same version verifies idempotently, older installs require `--upgrade`, newer installs are never silently downgraded, and active virtual environments must not receive `--user`.
+- Keep bootstrap version behavior explicit: the same version is force-reinstalled from the newly verified snapshot, older installs require `--upgrade`, newer installs are never silently downgraded, and active virtual environments must not receive `--user`.
 - Use only synthetic fixtures in tests. Never commit real transcripts, credentials, account identifiers, or private absolute paths.
 - On Windows, only bootstrap, installation, `--version`, `doctor`, and `guide` are currently in scope. Do not run or claim support for core `discover`, `inspect`, `build`, or `verify` until the Windows filesystem and Git safety port is complete.
 

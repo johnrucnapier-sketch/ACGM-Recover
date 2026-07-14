@@ -31,7 +31,7 @@ It cannot restore an inaccessible vendor-side Session or recover an account. It 
 
 ## Install from GitHub
 
-Python 3.10+, pip, `setuptools>=61`, and Git are required. The installer validates `PACKAGE_MANIFEST.json`, then performs an offline user installation. It does not scan evidence, inspect an account, download dependencies, or select a route.
+Only Python 3.10+ (including pip) and Git are required. The installer validates `PACKAGE_MANIFEST.json`, builds a controlled local wheel in a temporary directory using only the Python standard library, then performs an offline user installation. It does not require setuptools/wheel, scan evidence, inspect an account, download dependencies, or select a route.
 
 ```bash
 git clone https://github.com/johnrucnapier-sketch/ACGM-Recover.git
