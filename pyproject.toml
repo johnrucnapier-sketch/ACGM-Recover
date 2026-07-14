@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "acgm-recover"
+version = "0.1.0rc1"
+description = "Offline, evidence-first Claude Code project recovery"
+readme = "README.en.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "johnrucnapier-sketch" }
+]
+license = { text = "MIT for code; CC-BY-4.0 for documentation. See LICENSING.md." }
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Software Development :: Version Control :: Git",
+]
+
+[project.scripts]
+acgm-recover = "acgm_recover.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

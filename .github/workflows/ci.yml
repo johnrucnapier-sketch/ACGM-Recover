@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.10", "3.11", "3.12"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Unit and integration tests
+        run: PYTHONPATH=src python3 -W error::ResourceWarning -m unittest discover -s tests -v
+      - name: Release contract
+        run: python3 scripts/release_check.py --json
+      - name: Package manifest
+        run: python3 scripts/generate_package_manifest.py --check --json
+
+  windows-onboarding:
+    runs-on: windows-latest
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Onboarding contract tests
+        run: |
+          python -m unittest discover -s tests -p "test_onboarding.py" -v
+          python -m unittest discover -s tests -p "test_bootstrap.py" -v
+      - name: Windows guide remains fail-closed for core recovery
+        shell: pwsh
+        run: |
+          $env:PYTHONPATH = "src"
+          python -m acgm_recover guide --no-default-sources
+          if ($LASTEXITCODE -ne 1) { throw "Windows guide must report core runtime unsupported" }
+          $global:LASTEXITCODE = 0
+      - name: Bootstrap dry run
+        run: python scripts/bootstrap.py --dry-run --json
+      - name: Bootstrap install and idempotent verification
+        run: |
+          python scripts/bootstrap.py --json
+          python scripts/bootstrap.py --json
