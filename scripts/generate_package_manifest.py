@@ -67,7 +67,7 @@ def manifest() -> dict:
         )
     return {
         "schema_version": "1.0",
-        "package": "acgm-recover",
+        "package": "claude-code-recover",
         "version": version,
         "file_count": len(rows),
         "files": rows,

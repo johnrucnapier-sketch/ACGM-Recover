@@ -6,5 +6,5 @@ __pycache__/
 build/
 dist/
 *.egg-info/
-.acgm-recover-staging-*
+.claude-code-recover-staging-*
 recovery-bundle*/

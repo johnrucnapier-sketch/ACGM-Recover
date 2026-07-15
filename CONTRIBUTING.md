@@ -1,6 +1,6 @@
 # Contributing
 
-ACGM Recover handles private local history. A change that improves convenience but weakens evidence boundaries or privacy is not acceptable.
+Claude Code Recover handles private local history. A change that improves convenience but weakens evidence boundaries or privacy is not acceptable.
 
 Before proposing a change:
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from acgm_recover.sanitize import (
+from claude_code_recover.sanitize import (
     contains_specific_secret,
     sanitize_remote_url,
     sanitize_untrusted,
@@ -52,7 +52,7 @@ class SanitizeTests(unittest.TestCase):
 
     def test_uuid_transcript_path_remains_resolvable(self) -> None:
         value = "/safe/11111111-1111-4111-8111-111111111111.jsonl"
-        from acgm_recover.sanitize import sanitize_path
+        from claude_code_recover.sanitize import sanitize_path
 
         self.assertEqual(sanitize_path(value), value)
 

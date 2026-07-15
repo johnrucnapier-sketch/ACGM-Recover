@@ -10,11 +10,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from acgm_recover.analysis import analyze_project
-from acgm_recover.bundle import build_bundle
-from acgm_recover.util import RecoverError
-from acgm_recover.util import atomic_rename_noreplace, has_extra_acl
-from acgm_recover.verify import verify_bundle
+from claude_code_recover.analysis import analyze_project
+from claude_code_recover.bundle import build_bundle
+from claude_code_recover.util import RecoverError
+from claude_code_recover.util import atomic_rename_noreplace, has_extra_acl
+from claude_code_recover.verify import verify_bundle
 
 from helpers import create_git_project, create_sources, git
 
@@ -208,7 +208,7 @@ class SourceSafetyTests(unittest.TestCase):
                 destination.mkdir(mode=0o700)
                 atomic_rename_noreplace(source, destination)
 
-            with patch("acgm_recover.bundle.atomic_rename_noreplace", side_effect=race):
+            with patch("claude_code_recover.bundle.atomic_rename_noreplace", side_effect=race):
                 with self.assertRaisesRegex(RecoverError, "output_race_detected"):
                     build_bundle(analysis, output)
             self.assertTrue(output.is_dir())
@@ -225,8 +225,8 @@ class SourceSafetyTests(unittest.TestCase):
                 auxiliary_roots=[],
             )
             output = root / "bundle"
-            lock = root / ".bundle.acgm-recover.lock"
-            with patch("acgm_recover.bundle.clear_extra_acl", side_effect=RecoverError("acl_control_failed")):
+            lock = root / ".bundle.claude-code-recover.lock"
+            with patch("claude_code_recover.bundle.clear_extra_acl", side_effect=RecoverError("acl_control_failed")):
                 with self.assertRaisesRegex(RecoverError, "acl_control_failed"):
                     build_bundle(analysis, output)
             self.assertFalse(lock.exists())

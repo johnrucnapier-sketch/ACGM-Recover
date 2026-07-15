@@ -1,5 +1,5 @@
-"""ACGM Recover: offline, evidence-first project recovery."""
+"""Legacy RC compatibility package for :mod:`claude_code_recover`."""
 
-from .constants import TOOL_VERSION
+from claude_code_recover import TOOL_VERSION
 
 __all__ = ["TOOL_VERSION"]

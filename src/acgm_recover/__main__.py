@@ -1,6 +1,6 @@
-"""Support ``python -m acgm_recover`` on every supported Python platform."""
+"""Legacy RC alias for ``python -m claude_code_recover``."""
 
-from .cli import main
+from claude_code_recover.cli import main
 
 
 if __name__ == "__main__":

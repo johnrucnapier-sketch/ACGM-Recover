@@ -25,19 +25,19 @@ SPEC.loader.exec_module(bootstrap)
 class BootstrapTests(unittest.TestCase):
     def test_version_policy_is_idempotent_explicit_and_no_downgrade(self) -> None:
         self.assertEqual(
-            bootstrap._version_policy("0.1.0rc1", "0.1.0-rc.1", False),
+            bootstrap._version_policy("0.1.0rc2", "0.1.0-rc.2", False),
             ("same_version_reinstall", True),
         )
         self.assertEqual(
-            bootstrap._version_policy("0.0.9", "0.1.0-rc.1", False),
+            bootstrap._version_policy("0.1.0rc1", "0.1.0-rc.2", False),
             ("upgrade_confirmation_required", False),
         )
         self.assertEqual(
-            bootstrap._version_policy("0.0.9", "0.1.0-rc.1", True),
+            bootstrap._version_policy("0.1.0rc1", "0.1.0-rc.2", True),
             ("explicit_upgrade", True),
         )
         self.assertEqual(
-            bootstrap._version_policy("0.2.0", "0.1.0-rc.1", True),
+            bootstrap._version_policy("0.2.0", "0.1.0-rc.2", True),
             ("downgrade_refused", False),
         )
 
@@ -47,15 +47,22 @@ class BootstrapTests(unittest.TestCase):
 
     def test_stdlib_wheel_is_complete_and_does_not_need_build_packages(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            wheel = bootstrap._build_offline_wheel(Path(tmp), "0.1.0-rc.1")
+            wheel = bootstrap._build_offline_wheel(Path(tmp), "0.1.0-rc.2")
             with zipfile.ZipFile(wheel) as archive:
                 names = set(archive.namelist())
                 metadata = archive.read(
-                    "acgm_recover-0.1.0rc1.dist-info/METADATA"
+                    "claude_code_recover-0.1.0rc2.dist-info/METADATA"
                 ).decode("utf-8")
+                entry_points = archive.read(
+                    "claude_code_recover-0.1.0rc2.dist-info/entry_points.txt"
+                ).decode("utf-8")
+        self.assertIn("claude_code_recover/__main__.py", names)
         self.assertIn("acgm_recover/__main__.py", names)
-        self.assertIn("acgm_recover-0.1.0rc1.dist-info/RECORD", names)
-        self.assertIn("Version: 0.1.0rc1", metadata)
+        self.assertIn("claude_code_recover-0.1.0rc2.dist-info/RECORD", names)
+        self.assertIn("Name: claude-code-recover", metadata)
+        self.assertIn("Version: 0.1.0rc2", metadata)
+        self.assertIn("claude-code-recover = claude_code_recover.cli:main", entry_points)
+        self.assertIn("acgm-recover = acgm_recover.cli:main", entry_points)
         self.assertNotIn("setuptools", "\n".join(names))
 
     def test_wheel_uses_manifest_verified_snapshot_not_a_second_source_read(self) -> None:
@@ -63,7 +70,7 @@ class BootstrapTests(unittest.TestCase):
         self.assertIsNone(error)
         self.assertIsNotNone(verified)
         snapshot = dict(verified or {})
-        snapshot["src/acgm_recover/__init__.py"] = b"SNAPSHOT_SENTINEL = True\n"
+        snapshot["src/claude_code_recover/__init__.py"] = b"SNAPSHOT_SENTINEL = True\n"
         with (
             tempfile.TemporaryDirectory() as tmp,
             mock.patch.object(
@@ -72,20 +79,20 @@ class BootstrapTests(unittest.TestCase):
                 return_value=(snapshot, None),
             ),
         ):
-            wheel = bootstrap._build_offline_wheel(Path(tmp), "0.1.0-rc.1")
+            wheel = bootstrap._build_offline_wheel(Path(tmp), "0.1.0-rc.2")
             with zipfile.ZipFile(wheel) as archive:
-                installed = archive.read("acgm_recover/__init__.py")
+                installed = archive.read("claude_code_recover/__init__.py")
         self.assertEqual(installed, b"SNAPSHOT_SENTINEL = True\n")
 
     def test_unlisted_source_file_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            files = {"VERSION": b"0.1.0-rc.1\n", "trusted.py": b"pass\n"}
+            files = {"VERSION": b"0.1.0-rc.2\n", "trusted.py": b"pass\n"}
             for name, payload in files.items():
                 (root / name).write_bytes(payload)
             manifest = {
-                "package": "acgm-recover",
-                "version": "0.1.0-rc.1",
+                "package": "claude-code-recover",
+                "version": "0.1.0-rc.2",
                 "file_count": len(files),
                 "files": [
                     {
@@ -106,7 +113,7 @@ class BootstrapTests(unittest.TestCase):
     def test_dry_run_is_offline_and_does_not_authorize_discovery(self) -> None:
         before = bootstrap._installed_version()
         process = subprocess.run(
-            [sys.executable, str(BOOTSTRAP_PATH), "--dry-run", "--json"],
+            [sys.executable, str(BOOTSTRAP_PATH), "--dry-run", "--upgrade", "--json"],
             cwd=ROOT,
             env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
             stdin=subprocess.DEVNULL,
@@ -134,11 +141,12 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(bootstrap._installed_version(), before)
 
     def test_dry_run_keeps_explicit_route_as_argument_only(self) -> None:
-        result, code = bootstrap.install(
-            dry_run=True,
-            route="agent-neutral",
-            upgrade=False,
-        )
+        with mock.patch.object(bootstrap, "_installed_distribution_versions", return_value={}):
+            result, code = bootstrap.install(
+                dry_run=True,
+                route="agent-neutral",
+                upgrade=False,
+            )
         self.assertEqual(code, 0)
         self.assertEqual(result["route_argument"], "agent-neutral")
         self.assertFalse(result["route_selected_automatically"])
@@ -148,7 +156,7 @@ class BootstrapTests(unittest.TestCase):
         prerequisites = {"ok": True}
         with (
             mock.patch.object(bootstrap, "_prerequisites", return_value=prerequisites),
-            mock.patch.object(bootstrap, "_installed_version", return_value=None),
+            mock.patch.object(bootstrap, "_installed_distribution_versions", return_value={}),
             mock.patch.object(bootstrap.sys, "prefix", "/venv"),
             mock.patch.object(bootstrap.sys, "base_prefix", "/base"),
         ):
@@ -161,12 +169,44 @@ class BootstrapTests(unittest.TestCase):
         prerequisites = {"ok": True}
         with (
             mock.patch.object(bootstrap, "_prerequisites", return_value=prerequisites),
-            mock.patch.object(bootstrap, "_installed_version", return_value="0.1.0rc1"),
+            mock.patch.object(
+                bootstrap,
+                "_installed_distribution_versions",
+                return_value={"claude-code-recover": "0.1.0rc2"},
+            ),
         ):
             result, code = bootstrap.install(dry_run=True, route=None, upgrade=False)
         self.assertEqual(code, 0)
         self.assertEqual(result["version_action"], "same_version_reinstall")
         self.assertIn("--force-reinstall", result["install_command_argv"])
+
+    def test_rc1_distribution_requires_separate_migration_without_mutation(self) -> None:
+        prerequisites = {"ok": True}
+        for upgrade in (False, True):
+            with (
+                self.subTest(upgrade=upgrade),
+                mock.patch.object(bootstrap, "_prerequisites", return_value=prerequisites),
+                mock.patch.object(
+                    bootstrap,
+                    "_installed_distribution_versions",
+                    return_value={"acgm-recover": "0.1.0rc1"},
+                ),
+                mock.patch.object(bootstrap, "_run") as run,
+            ):
+                result, code = bootstrap.install(
+                    dry_run=False,
+                    route=None,
+                    upgrade=upgrade,
+                )
+            self.assertEqual(code, 2)
+            self.assertFalse(result["ok"])
+            self.assertEqual(result["status"], "MIGRATION_REQUIRED")
+            self.assertFalse(result["mutation_performed"])
+            plan = result["migration_plan"]
+            self.assertFalse(plan["executable"])
+            self.assertTrue(plan["requires_separate_user_authorization"])
+            self.assertTrue(all(step["authorized"] is False for step in plan["steps"]))
+            run.assert_not_called()
 
     def test_run_removes_python_path_configuration(self) -> None:
         fake = mock.Mock(returncode=0, stdout="", stderr="")
@@ -181,7 +221,7 @@ class BootstrapTests(unittest.TestCase):
 
     def test_installed_version_query_uses_clean_external_process(self) -> None:
         completed = subprocess.CompletedProcess(
-            args=[], returncode=0, stdout="0.1.0rc1\n", stderr=""
+            args=[], returncode=0, stdout='{"acgm-recover": "0.1.0rc1"}\n', stderr=""
         )
         with (
             mock.patch.object(bootstrap.tempfile, "TemporaryDirectory") as temporary,
@@ -190,6 +230,64 @@ class BootstrapTests(unittest.TestCase):
             temporary.return_value.__enter__.return_value = "/tmp/external-metadata"
             self.assertEqual(bootstrap._installed_version(), "0.1.0rc1")
         self.assertEqual(run.call_args.kwargs["cwd"], Path("/tmp/external-metadata"))
+
+    def test_unreadable_installed_distribution_state_fails_closed_without_mutation(self) -> None:
+        prerequisites = {"ok": True}
+        for unreadable in (None,):
+            with (
+                self.subTest(unreadable=unreadable),
+                mock.patch.object(bootstrap, "_prerequisites", return_value=prerequisites),
+                mock.patch.object(
+                    bootstrap,
+                    "_installed_distribution_versions",
+                    return_value=unreadable,
+                ),
+                mock.patch.object(bootstrap, "_run") as run,
+            ):
+                result, code = bootstrap.install(
+                    dry_run=False,
+                    route=None,
+                    upgrade=True,
+                )
+            self.assertEqual(code, 2)
+            self.assertFalse(result["ok"])
+            self.assertEqual(result["status"], "installed_distribution_state_unavailable")
+            self.assertFalse(result["mutation_performed"])
+            run.assert_not_called()
+
+    def test_invalid_distribution_metadata_output_is_unreadable(self) -> None:
+        for completed in (
+            subprocess.CompletedProcess(args=[], returncode=1, stdout="", stderr="failed"),
+            subprocess.CompletedProcess(args=[], returncode=0, stdout="not-json", stderr=""),
+            subprocess.CompletedProcess(args=[], returncode=0, stdout="[]", stderr=""),
+            subprocess.CompletedProcess(
+                args=[], returncode=0, stdout='{"acgm-recover": null}', stderr=""
+            ),
+            subprocess.CompletedProcess(
+                args=[], returncode=0, stdout='{"acgm-recover": ""}', stderr=""
+            ),
+            subprocess.CompletedProcess(
+                args=[], returncode=0, stdout='{"unknown-package": "1.0"}', stderr=""
+            ),
+        ):
+            with (
+                self.subTest(completed=completed),
+                mock.patch.object(bootstrap, "_run", return_value=completed),
+            ):
+                self.assertIsNone(bootstrap._installed_distribution_versions())
+
+    def test_canonical_distribution_version_takes_precedence_over_legacy(self) -> None:
+        completed = subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout=(
+                '{"acgm-recover": "0.1.0rc1", '
+                '"claude-code-recover": "0.1.0rc2"}\n'
+            ),
+            stderr="",
+        )
+        with mock.patch.object(bootstrap, "_run", return_value=completed):
+            self.assertEqual(bootstrap._installed_version(), "0.1.0rc2")
 
 
 if __name__ == "__main__":

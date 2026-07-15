@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline, user-scoped installer for an explicitly downloaded ACGM Recover tree."""
+"""Offline, user-scoped installer for an explicitly downloaded Claude Code Recover tree."""
 
 from __future__ import annotations
 
@@ -20,7 +20,8 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE = "acgm-recover"
+PACKAGE = "claude-code-recover"
+LEGACY_PACKAGE = "acgm-recover"
 MINIMUM_PYTHON = (3, 10)
 EXCLUDED_SOURCE_PARTS = {".git", "__pycache__", ".pytest_cache", "build", "dist"}
 EXCLUDED_SOURCE_NAMES = {".DS_Store", "PACKAGE_MANIFEST.json"}
@@ -30,7 +31,7 @@ def _display_command(arguments: list[str]) -> list[str]:
     return ["PYTHON" if index == 0 else value for index, value in enumerate(arguments)]
 
 
-def _installed_version() -> str | None:
+def _installed_distribution_versions() -> dict[str, str] | None:
     # Query metadata in a clean child process outside the checkout.  Calling
     # importlib.metadata here would let an inherited PYTHONPATH expose a local
     # *.egg-info directory and misreport the source tree as installed.
@@ -38,13 +39,40 @@ def _installed_version() -> str | None:
         sys.executable,
         "-c",
         "import importlib.metadata as m; "
-        "print(m.version('acgm-recover') if any(d.metadata.get('Name') == 'acgm-recover' "
-        "for d in m.distributions()) else '')",
+        "import json; "
+        "norm=lambda s:str(s or '').lower().replace('_','-').replace('.','-'); "
+        "wanted={'claude-code-recover','acgm-recover'}; "
+        "found={norm(d.metadata.get('Name','')):d.version for d in m.distributions() "
+        "if norm(d.metadata.get('Name','')) in wanted}; "
+        "print(json.dumps(found, sort_keys=True))",
     ]
-    with tempfile.TemporaryDirectory(prefix="acgm-recover-metadata-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="claude-code-recover-metadata-") as temporary:
         process = _run(command, cwd=Path(temporary))
-    value = process.stdout.strip()
-    return value if process.returncode == 0 and value else None
+    if process.returncode != 0:
+        return None
+    try:
+        value = json.loads(process.stdout)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(value, dict):
+        return None
+    result: dict[str, str] = {}
+    for name, version in value.items():
+        if (
+            name not in {PACKAGE, LEGACY_PACKAGE}
+            or not isinstance(version, str)
+            or not version.strip()
+        ):
+            return None
+        result[name] = version
+    return result
+
+
+def _installed_version() -> str | None:
+    versions = _installed_distribution_versions()
+    if versions is None:
+        return None
+    return versions.get(PACKAGE) or versions.get(LEGACY_PACKAGE)
 
 
 def _source_version() -> str:
@@ -195,34 +223,53 @@ def _build_offline_wheel(directory: Path, source_version: str) -> Path:
     if verified.get("VERSION", b"").decode("utf-8", "strict").strip() != source_version:
         raise ValueError("source_version_changed_after_plan")
     wheel_version = _wheel_version(source_version)
-    distribution = "acgm_recover"
+    distribution = "claude_code_recover"
     dist_info = f"{distribution}-{wheel_version}.dist-info"
     members: dict[str, bytes] = {}
-    package_prefix = "src/acgm_recover/"
     for relative, payload in sorted(verified.items()):
-        if relative.startswith(package_prefix):
+        if relative.startswith(("src/claude_code_recover/", "src/acgm_recover/")):
             members[relative.removeprefix("src/")] = payload
-    if "acgm_recover/__init__.py" not in members or "acgm_recover/cli.py" not in members:
+    module_files = {
+        "__init__.py",
+        "__main__.py",
+        "analysis.py",
+        "bundle.py",
+        "cli.py",
+        "constants.py",
+        "gitfacts.py",
+        "onboarding.py",
+        "sanitize.py",
+        "scan.py",
+        "util.py",
+        "verify.py",
+    }
+    required_package_members = {
+        f"{package}/{module}"
+        for package in ("claude_code_recover", "acgm_recover")
+        for module in module_files
+    }
+    if not required_package_members.issubset(members):
         raise ValueError("package_source_missing")
 
     members[f"{dist_info}/METADATA"] = (
         "Metadata-Version: 2.1\n"
-        "Name: acgm-recover\n"
+        "Name: claude-code-recover\n"
         f"Version: {wheel_version}\n"
-        "Summary: Offline, evidence-first Claude Code project recovery\n"
+        "Summary: Independent Claude Code recovery tool; not affiliated with or endorsed by Anthropic\n"
         "Requires-Python: >=3.10\n"
         "License: MIT for code; CC-BY-4.0 for documentation. See LICENSING.md.\n"
         "\n"
     ).encode("utf-8")
     members[f"{dist_info}/WHEEL"] = (
         "Wheel-Version: 1.0\n"
-        f"Generator: ACGM Recover bootstrap {source_version}\n"
+        f"Generator: Claude Code Recover bootstrap {source_version}\n"
         "Root-Is-Purelib: true\n"
         "Tag: py3-none-any\n"
         "\n"
     ).encode("utf-8")
     members[f"{dist_info}/entry_points.txt"] = (
         "[console_scripts]\n"
+        "claude-code-recover = claude_code_recover.cli:main\n"
         "acgm-recover = acgm_recover.cli:main\n"
     ).encode("utf-8")
     try:
@@ -274,14 +321,34 @@ def _prerequisites() -> dict[str, Any]:
 
 
 def _rollback(previous_version: str | None) -> dict[str, Any]:
-    current_version = _installed_version()
+    current_distributions = _installed_distribution_versions()
     uninstall = [sys.executable, "-m", "pip", "uninstall", "-y", PACKAGE]
+    if current_distributions is None:
+        return {
+            "status": "installed_state_unavailable_no_automatic_cleanup",
+            "previous_version": previous_version,
+            "current_version": None,
+            "guidance": (
+                "Installed distribution metadata could not be read reliably. "
+                "No automatic uninstall was attempted; inspect the interpreter state first."
+            ),
+            "manual_command_argv": _display_command(uninstall),
+        }
+    current_version = current_distributions.get(PACKAGE) or current_distributions.get(
+        LEGACY_PACKAGE
+    )
     if previous_version is None and current_version is not None:
         process = _run(uninstall)
+        after = _installed_distribution_versions()
         return {
             "status": "automatic_cleanup_succeeded" if process.returncode == 0 else "automatic_cleanup_failed",
             "previous_version": None,
-            "current_version": _installed_version(),
+            "current_version": (
+                after.get(PACKAGE) or after.get(LEGACY_PACKAGE)
+                if after is not None
+                else None
+            ),
+            "installed_state_readable": after is not None,
             "manual_command_argv": _display_command(uninstall),
         }
     return {
@@ -295,15 +362,16 @@ def _rollback(previous_version: str | None) -> dict[str, Any]:
 
 def _verification(route: str | None) -> tuple[dict[str, Any], bool]:
     commands = {
-        "version": [sys.executable, "-m", "acgm_recover", "--version"],
+        "version": [sys.executable, "-m", "claude_code_recover", "--version"],
         "doctor": [
             sys.executable,
             "-m",
-            "acgm_recover",
+            "claude_code_recover",
             "doctor",
             "--no-default-sources",
         ],
-        "guide": [sys.executable, "-m", "acgm_recover", "guide", "--no-default-sources"],
+        "guide": [sys.executable, "-m", "claude_code_recover", "guide", "--no-default-sources"],
+        "legacy_module_alias": [sys.executable, "-m", "acgm_recover", "--version"],
     }
     if route:
         commands["guide"].extend(["--route", route])
@@ -313,10 +381,11 @@ def _verification(route: str | None) -> tuple[dict[str, Any], bool]:
     origin_command = [
         sys.executable,
         "-c",
-        "import acgm_recover; from pathlib import Path; "
-        "print(Path(acgm_recover.__file__).resolve())",
+        "import claude_code_recover; from pathlib import Path; "
+        "print(Path(claude_code_recover.__file__).resolve())",
     ]
-    with tempfile.TemporaryDirectory(prefix="acgm-recover-verify-") as temporary:
+    legacy_alias_ok = False
+    with tempfile.TemporaryDirectory(prefix="claude-code-recover-verify-") as temporary:
         verification_cwd = Path(temporary)
         origin_process = _run(origin_command, cwd=verification_cwd)
         origin = Path(origin_process.stdout.strip()) if origin_process.returncode == 0 else None
@@ -340,7 +409,12 @@ def _verification(route: str | None) -> tuple[dict[str, Any], bool]:
             if name == "version":
                 value = process.stdout.strip()
                 row["output"] = value
-                version_ok = process.returncode == 0 and "ACGM Recover" in value
+                version_ok = process.returncode == 0 and "Claude Code Recover" in value
+            elif name == "legacy_module_alias":
+                value = process.stdout.strip()
+                row["output"] = value
+                row["legacy_compatibility_alias"] = True
+                legacy_alias_ok = process.returncode == 0 and "Claude Code Recover" in value
             else:
                 try:
                     payload = json.loads(process.stdout)
@@ -350,7 +424,7 @@ def _verification(route: str | None) -> tuple[dict[str, Any], bool]:
                 if name == "guide" and isinstance(payload, dict):
                     guide_installation_ready = payload.get("installation_ready") is True
             results[name] = row
-    return results, origin_ok and version_ok and guide_installation_ready
+    return results, origin_ok and version_ok and guide_installation_ready and legacy_alias_ok
 
 
 def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[str, Any], int]:
@@ -369,20 +443,42 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
         command.append("--user")
     if upgrade:
         command.append("--upgrade")
-    previous_version = _installed_version()
+    installed_distributions_before = _installed_distribution_versions()
+    if installed_distributions_before is None:
+        return {
+            "tool": "Claude Code Recover bootstrap",
+            "ok": False,
+            "status": "installed_distribution_state_unavailable",
+            "dry_run": dry_run,
+            "prerequisites": prerequisites,
+            "source_version": _source_version(),
+            "mutation_performed": False,
+            "network_used": False,
+            "evidence_scan_performed": False,
+            "installation_authorizes_discovery": False,
+            "guidance": (
+                "The current interpreter's installed distribution metadata could not be "
+                "read reliably. Resolve that state before installing or migrating."
+            ),
+        }, 2
+    previous_version = installed_distributions_before.get(PACKAGE) or installed_distributions_before.get(
+        LEGACY_PACKAGE
+    )
     source_version = _source_version()
     version_action, version_allowed = _version_policy(previous_version, source_version, upgrade)
     if version_action == "same_version_reinstall":
         command.append("--force-reinstall")
     command.append("VERIFIED_LOCAL_WHEEL")
     base: dict[str, Any] = {
-        "tool": "ACGM Recover bootstrap",
+        "tool": "Claude Code Recover bootstrap",
         "dry_run": dry_run,
         "prerequisites": prerequisites,
         "install_command_argv": _display_command(command),
         "install_scope": "virtual_environment" if in_virtual_environment else "current_user",
         "source_version": source_version,
         "installed_version_before": previous_version,
+        "installed_distributions_before": installed_distributions_before,
+        "legacy_alias_policy": "provided_by_rc2_for_one_rc_cycle",
         "version_action": version_action,
         "route_argument": route,
         "route_selected_automatically": False,
@@ -398,7 +494,48 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
                 "status": "prerequisites_failed",
                 "guidance": (
                     "Install Python 3.10+, Git, and pip separately; then obtain a clean "
-                    "official source tree whose PACKAGE_MANIFEST.json matches."
+                    "named source tree whose PACKAGE_MANIFEST.json matches."
+                ),
+            }
+        )
+        return base, 2
+    if LEGACY_PACKAGE in installed_distributions_before:
+        base.update(
+            {
+                "ok": False,
+                "status": "MIGRATION_REQUIRED",
+                "mutation_performed": False,
+                "migration_plan": {
+                    "executable": False,
+                    "requires_separate_user_authorization": True,
+                    "legacy_distribution": LEGACY_PACKAGE,
+                    "legacy_version": installed_distributions_before[LEGACY_PACKAGE],
+                    "steps": [
+                        {
+                            "action": "review_legacy_installation",
+                            "authorized": False,
+                        },
+                        {
+                            "action": "uninstall_legacy_distribution",
+                            "authorized": False,
+                            "command_argv_template": [
+                                "PYTHON",
+                                "-m",
+                                "pip",
+                                "uninstall",
+                                LEGACY_PACKAGE,
+                            ],
+                        },
+                        {
+                            "action": "rerun_verified_rc2_bootstrap",
+                            "authorized": False,
+                        },
+                    ],
+                },
+                "guidance": (
+                    "RC2 will not mutate or uninstall the RC1 distribution automatically. "
+                    "Obtain separate user authorization for the reviewed migration plan, "
+                    "then rerun bootstrap from this verified source tree."
                 ),
             }
         )
@@ -422,7 +559,7 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
         return base, 0
 
     try:
-        with tempfile.TemporaryDirectory(prefix="acgm-recover-wheel-") as temporary:
+        with tempfile.TemporaryDirectory(prefix="claude-code-recover-wheel-") as temporary:
             wheel_path = _build_offline_wheel(Path(temporary), source_version)
             actual_command = [
                 str(wheel_path) if value == "VERIFIED_LOCAL_WHEEL" else value
@@ -451,6 +588,22 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
         return base, 3
 
     verification, verified = _verification(route)
+    installed_distributions_after_result = _installed_distribution_versions()
+    installed_distributions_after = installed_distributions_after_result or {}
+    distribution_verified = (
+        installed_distributions_after_result is not None
+        and
+        installed_distributions_after.get(PACKAGE) == _wheel_version(source_version)
+        and LEGACY_PACKAGE not in installed_distributions_after
+    )
+    verification["distribution_metadata"] = {
+        "canonical_distribution": PACKAGE,
+        "canonical_version": installed_distributions_after.get(PACKAGE),
+        "metadata_readable": installed_distributions_after_result is not None,
+        "legacy_distribution_absent": LEGACY_PACKAGE not in installed_distributions_after,
+        "verified": distribution_verified,
+    }
+    verified = verified and distribution_verified
     if not verified:
         base.update(
             {
@@ -467,11 +620,12 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
         {
             "ok": True,
             "status": "installed_and_verified",
-            "installed_version": _installed_version(),
+            "installed_version": installed_distributions_after[PACKAGE],
             "verification": verification,
             "recovery_runtime_supported": guide_result.get("recovery_runtime_supported", False),
             "route_argument_required": route is None,
             "route_confirmation_still_required": True,
+            "installed_distributions_after": installed_distributions_after,
             "next_commands_argv": guide_result.get("next_commands_argv", []),
             "future_commands_after_confirmation_argv": guide_result.get(
                 "future_commands_after_confirmation_argv", []
@@ -482,7 +636,7 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Install ACGM Recover locally without scanning evidence.")
+    parser = argparse.ArgumentParser(description="Install Claude Code Recover locally without scanning evidence.")
     parser.add_argument("--dry-run", action="store_true", help="Validate and print the plan without installing.")
     parser.add_argument("--upgrade", action="store_true", help="Request an upgrade from this reviewed source tree.")
     parser.add_argument(

@@ -3,10 +3,10 @@
 All commands are available through the installed cross-platform module entrypoint:
 
 ```text
-PYTHON -m acgm_recover COMMAND
+PYTHON -m claude_code_recover COMMAND
 ```
 
-The repository-local `bin/acgm-recover` wrapper remains available on macOS/Linux. Installation and upgrade instructions are in [INSTALLATION.md](INSTALLATION.md).
+The repository-local `bin/claude-code-recover` wrapper is available on macOS/Linux. For RC2 only, `bin/acgm-recover`, the installed `acgm-recover` command, and `PYTHON -m acgm_recover` remain legacy compatibility aliases. Installation and upgrade instructions are in [INSTALLATION.md](INSTALLATION.md).
 
 ## `guide [--route ROUTE]`
 

@@ -3,9 +3,9 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "acgm-recover"
-version = "0.1.0rc1"
-description = "Offline, evidence-first Claude Code project recovery"
+name = "claude-code-recover"
+version = "0.1.0rc2"
+description = "Independent Claude Code recovery tool; not affiliated with or endorsed by Anthropic"
 readme = "README.en.md"
 requires-python = ">=3.10"
 authors = [
@@ -24,7 +24,12 @@ classifiers = [
 ]
 
 [project.scripts]
+claude-code-recover = "claude_code_recover.cli:main"
 acgm-recover = "acgm_recover.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/johnrucnapier-sketch/Claude-Code-Recover"
+Repository = "https://github.com/johnrucnapier-sketch/Claude-Code-Recover"
 
 [tool.setuptools]
 package-dir = { "" = "src" }

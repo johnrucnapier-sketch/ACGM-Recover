@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed release contract checks for ACGM Recover."""
+"""Fail-closed release contract checks for Claude Code Recover."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from acgm_recover.constants import ROUTES, SCHEMA_VERSION, TOOL_VERSION  # noqa: E402
+from claude_code_recover.constants import ROUTES, SCHEMA_VERSION, TOOL_VERSION  # noqa: E402
 
 REQUIRED = {
     ".gitattributes",
@@ -32,8 +32,21 @@ REQUIRED = {
     "SCHEMA_VERSION",
     "PACKAGE_MANIFEST.json",
     "pyproject.toml",
+    "bin/claude-code-recover",
     "bin/acgm-recover",
     "scripts/bootstrap.py",
+    "src/claude_code_recover/__init__.py",
+    "src/claude_code_recover/__main__.py",
+    "src/claude_code_recover/cli.py",
+    "src/claude_code_recover/constants.py",
+    "src/claude_code_recover/onboarding.py",
+    "src/claude_code_recover/analysis.py",
+    "src/claude_code_recover/bundle.py",
+    "src/claude_code_recover/gitfacts.py",
+    "src/claude_code_recover/sanitize.py",
+    "src/claude_code_recover/scan.py",
+    "src/claude_code_recover/util.py",
+    "src/claude_code_recover/verify.py",
     "src/acgm_recover/__main__.py",
     "src/acgm_recover/cli.py",
     "src/acgm_recover/onboarding.py",
@@ -73,7 +86,11 @@ def check_versions(errors: list[str], passed: list[str]) -> None:
 
 
 def check_executables(errors: list[str], passed: list[str]) -> None:
-    paths = [ROOT / "bin/acgm-recover", *sorted((ROOT / "scripts").glob("*.py"))]
+    paths = [
+        ROOT / "bin/claude-code-recover",
+        ROOT / "bin/acgm-recover",
+        *sorted((ROOT / "scripts").glob("*.py")),
+    ]
     if any(not (path.stat().st_mode & stat.S_IXUSR) for path in paths):
         errors.append("executable_mode_invalid")
     else:
@@ -122,8 +139,15 @@ def check_documented_contract(errors: list[str], passed: list[str]) -> None:
         "recommended_project_roots",
     )
     security = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
+    branding_terms = (
+        "Claude Code Recover",
+        "https://github.com/johnrucnapier-sketch/Claude-Code-Recover",
+        "Anthropic",
+    )
     if any(any(term not in text for term in required_terms) for text in readmes):
         errors.append("readiness_contract_not_documented")
+    elif any(any(term not in text for term in branding_terms) for text in readmes):
+        errors.append("canonical_brand_contract_not_documented")
     elif not all(term in security for term in ("alternate object", "Unicode", "ACL", "no-replace")):
         errors.append("security_contract_not_documented")
     else:
@@ -147,11 +171,12 @@ def check_ci(errors: list[str], passed: list[str]) -> None:
 
 def check_onboarding_contract(errors: list[str], passed: list[str]) -> None:
     bootstrap = (ROOT / "scripts/bootstrap.py").read_text(encoding="utf-8")
-    onboarding = (ROOT / "src/acgm_recover/onboarding.py").read_text(encoding="utf-8")
-    cli = (ROOT / "src/acgm_recover/cli.py").read_text(encoding="utf-8")
+    onboarding = (ROOT / "src/claude_code_recover/onboarding.py").read_text(encoding="utf-8")
+    cli = (ROOT / "src/claude_code_recover/cli.py").read_text(encoding="utf-8")
     installation = (ROOT / "docs/INSTALLATION.md").read_text(encoding="utf-8")
     security = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     required_bootstrap = (
         "--no-deps",
         "--no-build-isolation",
@@ -180,10 +205,43 @@ def check_onboarding_contract(errors: list[str], passed: list[str]) -> None:
         or "Windows boundary" not in installation
         or "force-reinstall" not in security
         or "force-reinstalled" not in agents
+        or 'name = "claude-code-recover"' not in pyproject
+        or 'claude-code-recover = "claude_code_recover.cli:main"' not in pyproject
+        or 'acgm-recover = "acgm_recover.cli:main"' not in pyproject
+        or "claude_code_recover" not in onboarding
     ):
         errors.append("onboarding_contract_invalid")
     else:
         passed.append("onboarding_contract")
+
+
+def check_brand_contract(errors: list[str], passed: list[str]) -> None:
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    bootstrap = (ROOT / "scripts/bootstrap.py").read_text(encoding="utf-8")
+    archive = (ROOT / "scripts/build_release.py").read_text(encoding="utf-8")
+    licensing = (ROOT / "LICENSING.md").read_text(encoding="utf-8")
+    canonical_sources = [
+        path.read_text(encoding="utf-8")
+        for path in sorted((ROOT / "src/claude_code_recover").glob("*.py"))
+    ]
+    legacy_sources = [
+        path.read_text(encoding="utf-8")
+        for path in sorted((ROOT / "src/acgm_recover").glob("*.py"))
+    ]
+    canonical_url = "https://github.com/johnrucnapier-sketch/Claude-Code-Recover"
+    if (
+        'name = "claude-code-recover"' not in pyproject
+        or canonical_url not in pyproject
+        or 'PACKAGE = "claude-code-recover"' not in bootstrap
+        or 'distribution = "claude_code_recover"' not in bootstrap
+        or "claude-code-recover-{version}" not in archive
+        or "not affiliated with, endorsed by, or an official product of Anthropic" not in licensing
+        or any("acgm_recover" in source for source in canonical_sources)
+        or any(len(source.splitlines()) > 20 for source in legacy_sources)
+    ):
+        errors.append("canonical_brand_contract_invalid")
+    else:
+        passed.append("canonical_brand_contract")
 
 
 def check_manifest(errors: list[str], passed: list[str]) -> None:
@@ -214,6 +272,7 @@ def main(argv: list[str] | None = None) -> int:
         check_documented_contract(errors, passed)
         check_ci(errors, passed)
         check_onboarding_contract(errors, passed)
+        check_brand_contract(errors, passed)
         check_manifest(errors, passed)
     result = {"ok": not errors, "errors": sorted(errors), "passed": sorted(passed)}
     if args.json:

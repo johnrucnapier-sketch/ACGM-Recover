@@ -5,9 +5,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from acgm_recover.analysis import _propagate_lineage_structural, discover_candidates
-from acgm_recover.analysis import analyze_project
-from acgm_recover.util import RecoverError
+from claude_code_recover.analysis import _propagate_lineage_structural, discover_candidates
+from claude_code_recover.analysis import analyze_project
+from claude_code_recover.util import RecoverError
 
 
 def record(category: str, session: str, tool_ids: list[str], parent_ids: list[str], roots: list[str]):

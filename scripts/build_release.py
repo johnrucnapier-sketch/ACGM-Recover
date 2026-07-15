@@ -35,8 +35,8 @@ def main() -> int:
     paths = [row["path"] for row in manifest["files"]] + ["PACKAGE_MANIFEST.json"]
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
-    output = dist / f"acgm-recover-{version}.tar.gz"
-    prefix = f"acgm-recover-{version}"
+    output = dist / f"claude-code-recover-{version}.tar.gz"
+    prefix = f"claude-code-recover-{version}"
     buffer = io.BytesIO()
     with tarfile.open(fileobj=buffer, mode="w", format=tarfile.PAX_FORMAT) as archive:
         for relative in sorted(paths):

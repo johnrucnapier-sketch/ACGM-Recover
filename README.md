@@ -1,8 +1,10 @@
-# ACGM Recover
+# Claude Code Recover
 
 **当 Claude Code、原账号或原平台已经不可用时，从幸存的本机代码、Git、worktree、Session metadata 和 transcript 结构中，重建一个可信、可解释、可继续开发的项目。**
 
-当前版本：`0.1.0-rc.1`。代码现作为公开开发预览；尚未发布正式 GitHub Release，也尚未经过真实 Claude Code 朋友端到端验收。
+当前版本：`0.1.0-rc.2`。代码现作为公开开发预览；尚未发布正式 GitHub Release，也尚未经过真实 Claude Code 朋友端到端验收。
+
+Claude Code Recover 是独立开源工具，与 Anthropic 不存在隶属关系，也不代表 Anthropic 的官方产品或背书。
 
 重要：RC 默认先生成**结构证据包**，不是完整历史交接。只有人工复核内容归属、历史决策和继续工作状态，并分别显式设置 `human_reviewed: true` 与 `share_approved: true` 后，包才可能达到 `HANDOFF_READY`。`HANDOFF_READY` 仍不等于新的运行授权；下游 Agent 动手前必须再次向用户确认。
 
@@ -10,7 +12,7 @@
 
 ## 它解决什么问题
 
-ACGM Recover 不是事前备份，也不是把聊天导成 HTML。
+Claude Code Recover 不是事前备份，也不是把聊天导成 HTML。
 
 - 事前 backup 只有在事故前持续安装和运行才有用；Recover 不要求用户以前安装过任何东西。
 - transcript exporter 能让人阅读聊天，但不会恢复当前代码、Git/worktree、主 Session 与 subagent 的关系，也不会形成可继续工作的交接。
@@ -38,43 +40,45 @@ ACGM Recover 不是事前备份，也不是把聊天导成 HTML。
 Git clone 本身也不会、且不应自动执行安装代码。
 
 ```bash
-git clone https://github.com/johnrucnapier-sketch/ACGM-Recover.git
-cd ACGM-Recover
+git clone https://github.com/johnrucnapier-sketch/Claude-Code-Recover.git
+cd Claude-Code-Recover
 python3 scripts/bootstrap.py --dry-run
 python3 scripts/bootstrap.py
-python3 -m acgm_recover guide
+python3 -m claude_code_recover guide
 ```
 
-Agent 可以在用户一次性明确授权“下载这个官方仓库并执行本地安装”后连续完成 clone、dry-run、安装和验证，但安装后必须停在 `selection_required`。完整的 macOS/Linux、Windows、升级、卸载和 Agent 操作说明见 [INSTALLATION.md](docs/INSTALLATION.md)。
+Agent 可以在用户一次性明确授权“下载这个指定仓库并执行本地安装”后连续完成 clone、dry-run、安装和验证，但安装后必须停在 `selection_required`。完整的 macOS/Linux、Windows、升级、卸载和 Agent 操作说明见 [INSTALLATION.md](docs/INSTALLATION.md)。
 
 ## 六个命令
 
 ```bash
-python3 -m acgm_recover guide
+python3 -m claude_code_recover guide
 
-bin/acgm-recover doctor
+bin/claude-code-recover doctor
 
-bin/acgm-recover discover
+bin/claude-code-recover discover
 
-bin/acgm-recover inspect \
+bin/claude-code-recover inspect \
   --project "/path/to/surviving-project"
 
-bin/acgm-recover build \
+bin/claude-code-recover build \
   --project "/path/to/surviving-project" \
   --output "/path/to/new-recovery-bundle" \
   --annotations "/path/to/reviewed-annotations.json"
 
-bin/acgm-recover verify \
+bin/claude-code-recover verify \
   --bundle "/path/to/new-recovery-bundle" \
   --check-sources
 ```
 
-仓库 wrapper 之外也可以使用当前解释器的 module 入口：macOS/Linux 常见写法是 `python3 -m acgm_recover`，Windows 常见写法是 `py -3 -m acgm_recover`。安装器实际使用的是启动它的同一个 Python，不依赖某个固定别名。
+仓库 wrapper 之外也可以使用当前解释器的 module 入口：macOS/Linux 常见写法是 `python3 -m claude_code_recover`，Windows 常见写法是 `py -3 -m claude_code_recover`。安装器实际使用的是启动它的同一个 Python，不依赖某个固定别名。
+
+RC2 为已有 RC1 安装保留一个发布周期的兼容别名：旧命令 `acgm-recover`、旧 module `python -m acgm_recover` 仍可使用，但已标记为 legacy；新文档和自动化必须使用 canonical 名称。检测到旧 distribution 时，bootstrap 会在任何修改前返回非可执行的 `MIGRATION_REQUIRED` 计划，不会把跨 distribution 卸载藏进 `--upgrade`。旧仓库地址 `https://github.com/johnrucnapier-sketch/ACGM-Recover` 仅用于识别和迁移旧 checkout，不是 RC2 的安装地址。
 
 当前默认本机数据路径针对 macOS；Linux 或自定义位置可显式传入：
 
 ```bash
-bin/acgm-recover inspect \
+bin/claude-code-recover inspect \
   --project "/path/to/project" \
   --no-default-sources \
   --claude-projects-root "/path/to/claude/projects" \
@@ -193,10 +197,10 @@ recovery-bundle/
 
 ## 与 ACGM 的关系
 
-ACGM 和 ACGM Recover 是两个独立产品：
+ACGM 和 Claude Code Recover 是两个独立产品：
 
 - ACGM：在项目正常运行期间减少漂移、阻断高风险动作、保留治理证据；
-- ACGM Recover：在平台或账号已经不可用后，从幸存本机证据重建连续性。
+- Claude Code Recover：在 Claude Code、原账号或原平台已经不可用后，从幸存本机证据重建项目连续性。
 
 Recover 不依赖事故前安装过 ACGM。两者未来可以协作，但 Recover 不会被塞回 Claude Code 版 ACGM V3，也不会覆盖原发布仓库。
 

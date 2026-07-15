@@ -1,5 +1,5 @@
 {
-  "file_count": 48,
+  "file_count": 61,
   "files": [
     {
       "license": "MIT",
@@ -12,43 +12,43 @@
       "license": "MIT",
       "mode": "0644",
       "path": ".github/workflows/ci.yml",
-      "sha256": "6fcab4abded0562f3863481d286f407075f3dd75b08db3b5480bfc172a182cbb",
-      "size": 1713
+      "sha256": "acc4adfe8823009cca1e1e20185c47f4c92bff07ba915c974755875dcd0a1116",
+      "size": 1763
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": ".gitignore",
-      "sha256": "9ccc1e71114dafc75194c3378f488fe550f7aa0ca823b008ab6c127b8b49aff7",
-      "size": 125
+      "sha256": "89f6a5b39bf3cb3dd1680ddb058094c7843727ee4d20b1f98099bc4b8dce90a8",
+      "size": 132
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "AGENTS.md",
-      "sha256": "33adee8c04c9d4e13783b3b529859520fdcdbf715f890906509304c1c47483b2",
-      "size": 1790
+      "sha256": "dcd656d40eedf1c9e61083b3f75485324dc3ff937f15ad8ec1e79a72f3a07b5a",
+      "size": 2141
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "CHANGELOG.md",
-      "sha256": "2b926d006ff9fb62f8ddb7a2501996bedaa65bd950bba84d0683987abf0f54c0",
-      "size": 2292
+      "sha256": "c46dc674527922db2786e275e4c1061c1080e1c3893bc03dcbb7530ebabc3b31",
+      "size": 3134
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "CLAUDE.md",
-      "sha256": "ce9fc507e73e7214fa8c589a4309cd6634f861cf2daaedc06dbe8dba8c0e0634",
-      "size": 275
+      "sha256": "cd8b874c8865f5c4589cca319df0c927f6124b0b2ebd77c6e75f38f3dbe20897",
+      "size": 283
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "CONTRIBUTING.md",
-      "sha256": "d799001412ae248b738949f93542dd60ee44f5b11de79821d730d30b4aae7365",
-      "size": 975
+      "sha256": "687e1dea8fa1b9bbfad20d38e2376158faff3a572e4eff96b0a6fc920c039998",
+      "size": 982
     },
     {
       "license": "MIT",
@@ -68,29 +68,29 @@
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "LICENSING.md",
-      "sha256": "f5df3c5a158bb80377f2802d753ff3bfcb15099257c948985927f6b42854033f",
-      "size": 650
+      "sha256": "fe8a0bc2ddb37404800294be9b820d6446dade63349c0c57fea2ddab844ad9d7",
+      "size": 953
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "README.en.md",
-      "sha256": "e06c321e78a563b40e24b909ad83de855e256a4ccd292cb9d32ea480fbf0e9b5",
-      "size": 9588
+      "sha256": "3bf3f9f4b507d8da4d17a5eea5bf0f01a33f1383435a93539b73bb935547d5e9",
+      "size": 10379
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "README.md",
-      "sha256": "94f0763765b4a29ca2ff61f6d134e21427220e1f8b3a9d9efb9fe70199eaef6c",
-      "size": 11481
+      "sha256": "6c66e0e5f6d0ff8c2cd643243e82b22586ca2e61ac0296e758f5d313e672cfe4",
+      "size": 12285
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "RELEASING.md",
-      "sha256": "f5fea9d9a685ef9919cff5063b8dd4a13859e11941ec966e14187c002a9dc79f",
-      "size": 1474
+      "sha256": "3b45db8a06e7bd3d47467906cd10f370cd300809a42dc3b0f4c17d350f8fc38c",
+      "size": 1913
     },
     {
       "license": "MIT",
@@ -103,14 +103,14 @@
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "SECURITY.md",
-      "sha256": "a43e219c0c69827ed125673f43a2aaf2cde6667bbf777ba663f9c6f74809fb2b",
-      "size": 7284
+      "sha256": "a393c1b4d785e593c31f57f45dceda77648bfdcd44626fddded0506e51e33c34",
+      "size": 7736
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "VERSION",
-      "sha256": "5c9c112fc83af1a2f8c196a676c8f81d1a28aab1ffe9bacd0e8265a150e2e20e",
+      "sha256": "b0b5813e7156d4ad22becc185a387f84a901d471c07592ecd5d4cf48e601b60d",
       "size": 11
     },
     {
@@ -121,142 +121,233 @@
       "size": 226
     },
     {
+      "license": "MIT",
+      "mode": "0755",
+      "path": "bin/claude-code-recover",
+      "sha256": "ac68a23b960df45e8ca144d1bd96af8814eb1438a868408d613b535bb70636ba",
+      "size": 244
+    },
+    {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "docs/CLI_REFERENCE.md",
-      "sha256": "2f447aae590344fc6f91c075a0836075944b9d5584e913acd734c1a290155426",
-      "size": 5685
+      "sha256": "f6a7556f3b0a1bc2ed979d22c558257d9415034810884c8d959d51cd39cd56b4",
+      "size": 5832
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "docs/INSTALLATION.md",
-      "sha256": "dc7d9e7923a41b81872c18d4dc5f5aa3d68523f6a2d16d96f947e4aba2d94424",
-      "size": 7351
+      "sha256": "f7b774a9b36f6f83c0470f9f10f1b15e3d40d8e9e87a83b0959138ab4d5e4e7a",
+      "size": 8434
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "docs/RECOVERY_MODEL.md",
-      "sha256": "c7924e10d18518d7fd34e2094c985b506d09cc12ee308e6c2fe88e0af5acfb2e",
-      "size": 6268
+      "sha256": "788761992ceeef622c862c5bf4b312b5d794fceb189d98a087d4b3f77621b2f3",
+      "size": 6275
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "pyproject.toml",
-      "sha256": "ea4c29784a16131d58d2ae102dbed0dc288ccb7ed4b3c304a2efece2d7b1143e",
-      "size": 892
+      "sha256": "81aa10cae7fd521c3474a7c417415bd351ab0cbce1fd8a2494667ff6120fad2c",
+      "size": 1147
     },
     {
       "license": "MIT",
       "mode": "0755",
       "path": "scripts/bootstrap.py",
-      "sha256": "57b3f6c0ffd98ff92b6ee66e0f82c29ab8d0316eacbd4bf293d8677e257dcae4",
-      "size": 20287
+      "sha256": "c78999ee0ea58721dcd2e504f05d29c0d36dfbae620d8513ebd7b506d0d3d838",
+      "size": 26804
     },
     {
       "license": "MIT",
       "mode": "0755",
       "path": "scripts/build_release.py",
-      "sha256": "d457e0cc136e5be1730a39cd7dfd7b9f1cb281f1b179aa1188ac98d7fb7fa4a5",
-      "size": 1832
+      "sha256": "d298783b3eb5889ed29e8281bdc971d7818b4a03d0ce6cf6c360eefe404b48fa",
+      "size": 1846
     },
     {
       "license": "MIT",
       "mode": "0755",
       "path": "scripts/generate_package_manifest.py",
-      "sha256": "2090c48936ecde709ca26771b385e77c93397671b80d18ac697f1aa31a4b0e48",
-      "size": 3348
+      "sha256": "40414053d444efc225338845c2ea5218877bb3c543b494722125917afdcb9d7b",
+      "size": 3355
     },
     {
       "license": "MIT",
       "mode": "0755",
       "path": "scripts/release_check.py",
-      "sha256": "89e0f269dfcdd9316e35418a80dcef7140bd5ff088952ac8be4d74612300292f",
-      "size": 8128
+      "sha256": "ffc8245ea1641bf9685403e48e2a742de0721762644b094e9908de7bf59b0ca5",
+      "size": 10835
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "src/acgm_recover/__init__.py",
-      "sha256": "d5ce9370e18f9b2f229951c3a11df4f989abf07522fe4ecb7deb379d426be8a9",
-      "size": 127
+      "sha256": "8f121e6c68457248e196f97e1e63bc7398e2c9ca167dd18933dd78e80f679c64",
+      "size": 144
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "src/acgm_recover/__main__.py",
-      "sha256": "75d4c2dc9a2ee23b29bc5a5e0d14889262c94589ac8a10716ed94f9ee6c759ad",
-      "size": 158
+      "sha256": "a523e08ef71a233c138cf4759fe0ae9d84dab0f9c6f27aaeb502ed6467e28908",
+      "size": 161
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "src/acgm_recover/analysis.py",
-      "sha256": "3f0b4809fc111fadb417251412992f0d991fcf112cd72ec38eafa8dcdea32be9",
-      "size": 61964
+      "sha256": "bb2f827d3c4670e09e0c2a8699169ea276142c39ba777da0fb9c6fa8bb7e0dbf",
+      "size": 206
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "src/acgm_recover/bundle.py",
-      "sha256": "6d3b3f6706201ee2cb555245100e203320cfec23f8bc7aab560272eea4dea0b2",
-      "size": 25439
+      "sha256": "7c8d1990e81020b5bd5bf050f3d146e0fcc19596612270fec514ac4644c0d1d0",
+      "size": 202
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "src/acgm_recover/cli.py",
-      "sha256": "4de22106b68d260fdb649baa4ca2e73be66839c8c5fc0153128cb5ca9f4502aa",
-      "size": 9023
+      "sha256": "bf273d97eea774dc54ad0d0ac286cce0201c21dbee07933a0b7a82cf1fb16124",
+      "size": 182
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "src/acgm_recover/constants.py",
-      "sha256": "e459a72f24166e7c5d1fac970e2c5fd1ecf562e767ff5a284f467b45ff59bfd6",
-      "size": 2454
+      "sha256": "71b93d625934093f0ade259db8df4214dc06e9b5fd2645e585cfad329b2b6107",
+      "size": 210
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "src/acgm_recover/gitfacts.py",
+      "sha256": "1f507818bdb3a8e701695f65fc15de17080b49e89fb999098318448cc26ce4c7",
+      "size": 206
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/acgm_recover/onboarding.py",
+      "sha256": "c6f486da04b75a177ca83b1891d227eaac0c64a7d57b89f200146f15c5abb947",
+      "size": 210
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/acgm_recover/sanitize.py",
+      "sha256": "9eeef73490536a38d660f3dcae0fd3177ca434471bc5398c2d4dae18c53f4d0e",
+      "size": 206
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/acgm_recover/scan.py",
+      "sha256": "902eeb1dad79191030a75453642860787d42f1e4ee97f76cebf696f2340d0a88",
+      "size": 198
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/acgm_recover/util.py",
+      "sha256": "891ee77d26a3dcde36f7829e1342ecf1f49e50e43dc62046fc20a24a95006b91",
+      "size": 198
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/acgm_recover/verify.py",
+      "sha256": "408e64699dae5049a35cf37a50020af012fcc3280c262ab78b98a0f2e5968c07",
+      "size": 202
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/claude_code_recover/__init__.py",
+      "sha256": "a38dc9f4af3b9a10b7ff8908f263a424519dd4b122b053b3fc5e8786bc880b5c",
+      "size": 142
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/claude_code_recover/__main__.py",
+      "sha256": "0ce381de3d696ae5d7b1bc6194ff2d1b8884d1074cce86a25a142b09fa73e4d0",
+      "size": 144
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/claude_code_recover/analysis.py",
+      "sha256": "a702b42947ddef59181c85063d0c4b5194a791a58156e2951ff3f862306780fa",
+      "size": 61985
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/claude_code_recover/bundle.py",
+      "sha256": "ab1a0eec1c6fbaa1caf1cc3f2c83513174bf9bd0e1f833b69b8c2906ae4ec6ea",
+      "size": 25487
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/claude_code_recover/cli.py",
+      "sha256": "c2f52531e34ef19dcbf4c231b903266499001cd0b4256ef32aeb2d5e9e97b6cf",
+      "size": 9037
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/claude_code_recover/constants.py",
+      "sha256": "6b5b311548ae2490a4dffad05c1120433005b79c15d77d51de70038c4f224936",
+      "size": 2454
+    },
+    {
+      "license": "MIT",
+      "mode": "0644",
+      "path": "src/claude_code_recover/gitfacts.py",
       "sha256": "d4c7d7778e3f4d77b60ae8b797bb011b5c2e260ffe6209316b77411062f533e4",
       "size": 18115
     },
     {
       "license": "MIT",
       "mode": "0644",
-      "path": "src/acgm_recover/onboarding.py",
-      "sha256": "1b1956819cd16974a8b910d0f71f6e4a45b0e88d4c3a44d883d9f0bf6e7830da",
-      "size": 7010
+      "path": "src/claude_code_recover/onboarding.py",
+      "sha256": "6f71c18515b1cc45e6a8512462696db30e2e71475b1d55f79a9564e834c175ef",
+      "size": 7052
     },
     {
       "license": "MIT",
       "mode": "0644",
-      "path": "src/acgm_recover/sanitize.py",
+      "path": "src/claude_code_recover/sanitize.py",
       "sha256": "63b1b66e84afc8d560bf4823db25a503cc5d09f408f9107e3c94927a6a4b6799",
       "size": 5159
     },
     {
       "license": "MIT",
       "mode": "0644",
-      "path": "src/acgm_recover/scan.py",
+      "path": "src/claude_code_recover/scan.py",
       "sha256": "11168237bcf8c1cb4b2790f7d8724676b9bc1fe066bf5046d3875e2db5134d61",
       "size": 29365
     },
     {
       "license": "MIT",
       "mode": "0644",
-      "path": "src/acgm_recover/util.py",
+      "path": "src/claude_code_recover/util.py",
       "sha256": "f611f16b653725f1fcac8f5f994278cacc0d95e08917824465ecea053fd546f8",
       "size": 13092
     },
     {
       "license": "MIT",
       "mode": "0644",
-      "path": "src/acgm_recover/verify.py",
+      "path": "src/claude_code_recover/verify.py",
       "sha256": "9ea1d760c0d51e88a16626de3214c54413fe1a5543008357dedeca3cc1f26853",
       "size": 37463
     },
@@ -271,74 +362,74 @@
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_analysis_bundle.py",
-      "sha256": "d119b53ccc4fadbc9d9d8de33ec9ec0e824bcd026209438fb6e13a3d74b7a778",
-      "size": 7031
+      "sha256": "7db4b4c9066016cd97a8d79ea86720548235810a7bc6c29bea1f065e8b7b7d33",
+      "size": 7059
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_analysis_internal.py",
-      "sha256": "32e1f3f6bb0c9ece620a03db89653eee66195025ca09f53727fe16827880ac0a",
-      "size": 4053
+      "sha256": "a8d1eda16e5b9b1fe3829031503a786ae0d1e3d79dff6b72a6fe7bc6ca882c08",
+      "size": 4074
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_bootstrap.py",
-      "sha256": "0fe449a88de6660de8c78fd8e3db7f497897e20b388d2ff3d9a3bcb89e257cd9",
-      "size": 8768
+      "sha256": "6b7abf9f21e8b46e2d3211633dd7390afbac7351d6c94f9fbe9b58299b6ef312",
+      "size": 13385
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_gitfacts.py",
-      "sha256": "58d6fd114545f59db909974d3df33eb24c55e6a39fa498769c8da17848a2654b",
-      "size": 6690
+      "sha256": "742608f9d483f30edcc4e60fc9c38a76928dff33fb67fb4defc854ea58c68ea7",
+      "size": 6718
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_onboarding.py",
-      "sha256": "cccdb565161e277b6b7ff19260c32ca9efc64997c598c9789e781d66380b5518",
-      "size": 6226
+      "sha256": "62abe395a1a5c4caeea50bcfe4efec0638ce6765552e9bbfbc5cace8ef651ca0",
+      "size": 7489
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_recovery_readiness.py",
-      "sha256": "2583f1abed6537b25fe3de5ef7133939dd6eb8103348dc003d3d7c657742fc30",
-      "size": 11626
+      "sha256": "a093cc3f324a47dc236c44817dfdca558e4abd4566532523a6f7ae6f5a48a689",
+      "size": 11647
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_sanitize.py",
-      "sha256": "b12ee66ad2bf4daa0e75ce32a5ea4b10cc1fafe50739bbd164babba9d8485592",
-      "size": 2362
+      "sha256": "5b56a67fe9e78c40adc2b48636f3f0b8dab790938a0ae03e53cb15431d31e047",
+      "size": 2376
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_scan.py",
-      "sha256": "0a238c01aa8749d74f141eff3faf84d901463723e1d90614270ec9530c8dd208",
-      "size": 12592
+      "sha256": "13f1973f85af0d0079510fda02d45c6ca4d3c2c186a67ec5c598f25872fa0b5c",
+      "size": 12613
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_source_safety.py",
-      "sha256": "da9c2b993531d9dd31fea958898ce5f81cbdc92fb4bb9d289e4c8a3788687190",
-      "size": 10176
+      "sha256": "c322dc6c6bd71800e6129588ee28167295444b5f34c5e79aa0cd595bde222881",
+      "size": 10232
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_verify_contract.py",
-      "sha256": "87dda16d30e78d732281611402e86388c5181073dba4f3d417ede322ccc5b72a",
-      "size": 10130
+      "sha256": "e93917cd77d4adbd34f31b13834af72afd27a5e535dfec9f69188baf7de7a3a8",
+      "size": 10158
     }
   ],
-  "package": "acgm-recover",
+  "package": "claude-code-recover",
   "schema_version": "1.0",
-  "version": "0.1.0-rc.1"
+  "version": "0.1.0-rc.2"
 }

@@ -1,8 +1,17 @@
 # Changelog
 
-## 0.1.0-rc.1 — Unreleased
+## 0.1.0-rc.2 — Unreleased
 
-- Added the cross-platform `python -m acgm_recover` entrypoint.
+- Renamed the product to Claude Code Recover so the recovery target is explicit: Claude Code project continuity, not an ACGM installation.
+- Moved the canonical repository contract to `johnrucnapier-sketch/Claude-Code-Recover`.
+- Added canonical `claude-code-recover`, `python -m claude_code_recover`, and `bin/claude-code-recover` entrypoints.
+- Renamed the distribution to `claude-code-recover`; bootstrap detects RC1 `acgm-recover` metadata and returns a non-executable `MIGRATION_REQUIRED` plan before any mutation.
+- Retained `acgm-recover` and `python -m acgm_recover` as documented legacy aliases for one RC cycle.
+- Added independent-project and no-Anthropic-affiliation notices without changing evidence, privacy, or recovery-readiness semantics.
+
+## 0.1.0-rc.1 — Development preview
+
+- Added the original cross-platform `python -m acgm_recover` entrypoint, now retained as an RC2 legacy alias.
 - Added an offline `guide` command that reports observable capabilities, requires explicit route input, and never inspects account/provider/model identity.
 - Added an offline, user-scoped `scripts/bootstrap.py` installer with dry-run, source-manifest validation, post-install verification, and failure cleanup guidance.
 - Added Agent-assisted clone/install instructions while keeping evidence discovery and route confirmation as separate authorizations.
