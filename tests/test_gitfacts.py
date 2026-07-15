@@ -5,8 +5,8 @@ import unittest
 from unittest.mock import patch
 from pathlib import Path
 
-from acgm_recover.gitfacts import _run_git_bytes, _status_summary, inspect_git
-from acgm_recover.util import RecoverError, stat_snapshot
+from claude_code_recover.gitfacts import _run_git_bytes, _status_summary, inspect_git
+from claude_code_recover.util import RecoverError, stat_snapshot
 
 from helpers import create_git_project, git
 
@@ -134,9 +134,9 @@ class GitFactsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             project, _ = create_git_project(Path(tmp))
             with patch(
-                "acgm_recover.gitfacts._run_git_text",
+                "claude_code_recover.gitfacts._run_git_text",
                 side_effect=RecoverError("git_output_budget_exceeded"),
-            ), patch("acgm_recover.gitfacts._run_git_bytes") as status_runner:
+            ), patch("claude_code_recover.gitfacts._run_git_bytes") as status_runner:
                 result = _status_summary(project)
             self.assertFalse(result["readable"])
             status_runner.assert_not_called()

@@ -10,8 +10,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from acgm_recover import cli
-from acgm_recover.onboarding import environment_guide
+from claude_code_recover import cli
+from claude_code_recover.onboarding import environment_guide
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -61,8 +61,8 @@ class OnboardingTests(unittest.TestCase):
 
     def test_windows_onboarding_does_not_claim_core_runtime_or_emit_build(self) -> None:
         with (
-            mock.patch("acgm_recover.onboarding.recovery_runtime_supported", return_value=False),
-            mock.patch("acgm_recover.onboarding.platform.system", return_value="Windows"),
+            mock.patch("claude_code_recover.onboarding.recovery_runtime_supported", return_value=False),
+            mock.patch("claude_code_recover.onboarding.platform.system", return_value="Windows"),
         ):
             result = environment_guide(
                 "claude-new-account",
@@ -84,7 +84,7 @@ class OnboardingTests(unittest.TestCase):
             [
                 sys.executable,
                 "-m",
-                "acgm_recover",
+                "claude_code_recover",
                 "guide",
                 "--no-default-sources",
                 "--route",
@@ -108,6 +108,37 @@ class OnboardingTests(unittest.TestCase):
             {"configured_locations": 0, "visible_directories": 0},
         )
 
+    def test_legacy_module_alias_remains_available_for_rc2(self) -> None:
+        environment = os.environ.copy()
+        environment["PYTHONPATH"] = str(ROOT / "src")
+        process = subprocess.run(
+            [sys.executable, "-m", "acgm_recover", "--version"],
+            cwd=ROOT,
+            env=environment,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=20,
+            check=False,
+        )
+        self.assertEqual(process.returncode, 0, process.stderr)
+        self.assertEqual(process.stdout.strip(), "Claude Code Recover 0.1.0-rc.2")
+
+    def test_canonical_repository_wrapper_invokes_cli(self) -> None:
+        process = subprocess.run(
+            [str(ROOT / "bin" / "claude-code-recover"), "--version"],
+            cwd=ROOT,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=20,
+            check=False,
+        )
+        self.assertEqual(process.returncode, 0, process.stderr)
+        self.assertEqual(process.stdout.strip(), "Claude Code Recover 0.1.0-rc.2")
+
     def test_windows_core_commands_fail_before_source_access(self) -> None:
         commands = (
             ["discover", "--no-default-sources"],
@@ -116,11 +147,11 @@ class OnboardingTests(unittest.TestCase):
             ["verify", "--bundle", "unused"],
         )
         with (
-            mock.patch("acgm_recover.cli.recovery_runtime_supported", return_value=False),
-            mock.patch("acgm_recover.cli._sources", side_effect=AssertionError("source access attempted")),
-            mock.patch("acgm_recover.cli._analyze", side_effect=AssertionError("analysis attempted")),
-            mock.patch("acgm_recover.cli.discover_candidates", side_effect=AssertionError("scan attempted")),
-            mock.patch("acgm_recover.cli.verify_bundle", side_effect=AssertionError("verify attempted")),
+            mock.patch("claude_code_recover.cli.recovery_runtime_supported", return_value=False),
+            mock.patch("claude_code_recover.cli._sources", side_effect=AssertionError("source access attempted")),
+            mock.patch("claude_code_recover.cli._analyze", side_effect=AssertionError("analysis attempted")),
+            mock.patch("claude_code_recover.cli.discover_candidates", side_effect=AssertionError("scan attempted")),
+            mock.patch("claude_code_recover.cli.verify_bundle", side_effect=AssertionError("verify attempted")),
         ):
             for arguments in commands:
                 with self.subTest(command=arguments[0]):

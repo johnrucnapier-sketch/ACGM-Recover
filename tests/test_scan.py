@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from acgm_recover.scan import scan_jsonl_roots, scan_metadata_roots
+from claude_code_recover.scan import scan_jsonl_roots, scan_metadata_roots
 
 from helpers import MAIN_SESSION, create_git_project, create_sources, write_jsonl
 
@@ -254,8 +254,8 @@ class ScanTests(unittest.TestCase):
             bucket.mkdir()
             path = bucket / f"{MAIN_SESSION}.jsonl"
             path.write_bytes(b"{" + b"x" * 1024)
-            with patch("acgm_recover.scan.MAX_JSONL_BYTES", 64), patch(
-                "acgm_recover.scan.MAX_JSONL_LINE_BYTES", 16
+            with patch("claude_code_recover.scan.MAX_JSONL_BYTES", 64), patch(
+                "claude_code_recover.scan.MAX_JSONL_LINE_BYTES", 16
             ):
                 row = scan_jsonl_roots([(root, "claude_projects")])[0]
             self.assertEqual(row["parse"]["status"], "bounded_partial")

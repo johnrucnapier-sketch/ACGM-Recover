@@ -7,10 +7,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from acgm_recover.analysis import analyze_project
-from acgm_recover.bundle import build_bundle
-from acgm_recover.util import mode_string, sha256_file
-from acgm_recover.verify import CHECKSUM_CLAIM, verify_bundle
+from claude_code_recover.analysis import analyze_project
+from claude_code_recover.bundle import build_bundle
+from claude_code_recover.util import mode_string, sha256_file
+from claude_code_recover.verify import CHECKSUM_CLAIM, verify_bundle
 
 from helpers import create_git_project, create_sources
 

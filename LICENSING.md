@@ -1,6 +1,8 @@
 # Licensing — dual track / 双轨
 
-ACGM Recover combines mechanical code with evidence and recovery methodology prose.
+Claude Code Recover combines mechanical code with evidence and recovery methodology prose.
+
+Claude Code Recover is an independent open-source project. It is not affiliated with, endorsed by, or an official product of Anthropic. “Claude” and “Claude Code” identify the external platform whose surviving local project evidence this tool can analyze; they do not imply sponsorship.
 
 | Paths | License |
 |---|---|

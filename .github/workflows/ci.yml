@@ -44,9 +44,10 @@ jobs:
         shell: pwsh
         run: |
           $env:PYTHONPATH = "src"
-          python -m acgm_recover guide --no-default-sources
+          python -m claude_code_recover guide --no-default-sources
           if ($LASTEXITCODE -ne 1) { throw "Windows guide must report core runtime unsupported" }
           $global:LASTEXITCODE = 0
+          python -m acgm_recover --version
       - name: Bootstrap dry run
         run: python scripts/bootstrap.py --dry-run --json
       - name: Bootstrap install and idempotent verification

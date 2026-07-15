@@ -1,8 +1,10 @@
-# ACGM Recover
+# Claude Code Recover
 
 **When Claude Code, the original account, or the original platform is no longer available, rebuild a trustworthy, explainable, continuable project from surviving local code, Git, worktrees, session metadata, and transcript structure.**
 
-Current version: `0.1.0-rc.1`. The code is now a public development preview. No formal GitHub Release has been published, and a real-friend Claude Code end-to-end acceptance run is still pending.
+Current version: `0.1.0-rc.2`. The code is now a public development preview. No formal GitHub Release has been published, and a real-friend Claude Code end-to-end acceptance run is still pending.
+
+Claude Code Recover is an independent open-source tool. It is not affiliated with, endorsed by, or an official product of Anthropic.
 
 Important: the RC first creates a **structural evidence bundle**, not a complete historical handoff. It can reach `HANDOFF_READY` only after a human reviews content ownership, historical decisions, and continuation state and explicitly sets both `human_reviewed: true` and `share_approved: true`. `HANDOFF_READY` is still not fresh runtime authority; a downstream agent must reconfirm with the user before acting.
 
@@ -10,7 +12,7 @@ Important: the RC first creates a **structural evidence bundle**, not a complete
 
 ## What it solves
 
-ACGM Recover is neither a pre-incident backup nor a transcript-to-HTML exporter.
+Claude Code Recover is neither a pre-incident backup nor a transcript-to-HTML exporter.
 
 - A backup only helps if it was installed and continuously running before the incident. Recover has no prior-install requirement.
 - A transcript exporter makes chat readable, but does not reconstruct current code, Git/worktree state, main/subagent relationships, evidence conflicts, or a safe continuation handoff.
@@ -39,27 +41,29 @@ not automatically reload an already-running Agent, and Git clone does not and sh
 not execute installation code.
 
 ```bash
-git clone https://github.com/johnrucnapier-sketch/ACGM-Recover.git
-cd ACGM-Recover
+git clone https://github.com/johnrucnapier-sketch/Claude-Code-Recover.git
+cd Claude-Code-Recover
 python3 scripts/bootstrap.py --dry-run
 python3 scripts/bootstrap.py
-python3 -m acgm_recover guide
+python3 -m claude_code_recover guide
 ```
 
-When the user explicitly authorizes both cloning this official repository and local installation, an Agent may complete clone, dry-run, install, and verification in one task. It must still stop at `selection_required`. See [INSTALLATION.md](docs/INSTALLATION.md) for macOS/Linux, Windows, upgrade, uninstall, and Agent-assisted instructions.
+When the user explicitly authorizes both cloning the named repository and local installation, an Agent may complete clone, dry-run, install, and verification in one task. It must still stop at `selection_required`. See [INSTALLATION.md](docs/INSTALLATION.md) for macOS/Linux, Windows, upgrade, uninstall, and Agent-assisted instructions.
 
 ## Commands
 
 ```bash
-python3 -m acgm_recover guide
-bin/acgm-recover doctor
-bin/acgm-recover discover
-bin/acgm-recover inspect --project "/path/to/surviving-project"
-bin/acgm-recover build --project "/path/to/surviving-project" --output "/path/to/new-bundle" --annotations "/path/to/reviewed-annotations.json"
-bin/acgm-recover verify --bundle "/path/to/new-bundle" --check-sources
+python3 -m claude_code_recover guide
+bin/claude-code-recover doctor
+bin/claude-code-recover discover
+bin/claude-code-recover inspect --project "/path/to/surviving-project"
+bin/claude-code-recover build --project "/path/to/surviving-project" --output "/path/to/new-bundle" --annotations "/path/to/reviewed-annotations.json"
+bin/claude-code-recover verify --bundle "/path/to/new-bundle" --check-sources
 ```
 
-The repository wrapper can be replaced by the current interpreter's module entrypoint: commonly `python3 -m acgm_recover` on macOS/Linux or `py -3 -m acgm_recover` on Windows. Bootstrap uses the same interpreter that launched it and does not assume a fixed alias.
+The repository wrapper can be replaced by the current interpreter's module entrypoint: commonly `python3 -m claude_code_recover` on macOS/Linux or `py -3 -m claude_code_recover` on Windows. Bootstrap uses the same interpreter that launched it and does not assume a fixed alias.
+
+For one RC cycle, RC2 keeps the RC1 compatibility aliases `acgm-recover` and `python -m acgm_recover`. They are legacy; new documentation and automation must use the canonical names. When the old distribution is detected, bootstrap returns a non-executable `MIGRATION_REQUIRED` plan before any mutation; cross-distribution uninstall is never hidden inside `--upgrade`. The old repository URL `https://github.com/johnrucnapier-sketch/ACGM-Recover` is documented only to identify or migrate an old checkout, not as the RC2 installation source.
 
 Default source locations target macOS. On Linux or custom layouts, use `--no-default-sources` with explicit `--claude-projects-root`, `--metadata-root`, and `--auxiliary-root` values.
 
@@ -122,7 +126,7 @@ The three templates are:
 
 ## Relationship to ACGM
 
-ACGM governs a project while it is running. ACGM Recover reconstructs continuity after the platform or account is unavailable. Recover does not require ACGM to have been installed before the incident and remains a separate product from Claude Code ACGM V3.
+ACGM governs a project while it is running. Claude Code Recover reconstructs Claude Code project continuity after the platform or account is unavailable. Recover does not require ACGM to have been installed before the incident and remains a separate product from Claude Code ACGM V3.
 
 ## RC exclusions
 

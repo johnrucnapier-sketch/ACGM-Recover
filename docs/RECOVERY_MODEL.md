@@ -2,7 +2,7 @@
 
 ## 1. Claim-specific evidence order
 
-ACGM Recover does not use one global “most important source” list. Evidence priority depends on the claim.
+Claude Code Recover does not use one global “most important source” list. Evidence priority depends on the claim.
 
 ### Current-state claim / 当前状态
 
