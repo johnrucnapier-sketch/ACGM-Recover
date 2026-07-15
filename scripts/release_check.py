@@ -187,6 +187,13 @@ def check_onboarding_contract(errors: list[str], passed: list[str]) -> None:
         "stdlib_wheel_plus_pip",
         "upgrade_confirmation_required",
         "downgrade_refused",
+        "EXTERNALLY-MANAGED",
+        "--break-system-packages",
+        "externally_managed_user_install_unavailable",
+        "externally_managed_no_automatic_cleanup",
+        'startswith("PIP_")',
+        "PYTHONUSERBASE",
+        "PYTHONNOUSERSITE",
         "shell=False",
     )
     required_onboarding = (
@@ -204,6 +211,9 @@ def check_onboarding_contract(errors: list[str], passed: list[str]) -> None:
         or "recovery_runtime_not_supported_on_platform" not in cli
         or "Windows boundary" not in installation
         or "force-reinstall" not in security
+        or "PEP 668" not in installation
+        or "PEP 668" not in security
+        or "--break-system-packages" not in agents
         or "force-reinstalled" not in agents
         or 'name = "claude-code-recover"' not in pyproject
         or 'claude-code-recover = "claude_code_recover.cli:main"' not in pyproject

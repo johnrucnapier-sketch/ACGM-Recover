@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-TOOL_VERSION = "0.1.0-rc.2"
+TOOL_VERSION = "0.1.0-rc.3"
 SCHEMA_VERSION = "1.0"
 
 ROUTES = (

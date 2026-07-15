@@ -47,14 +47,24 @@ py -3 -m claude_code_recover guide --no-default-sources
 `bootstrap.py` first checks Python, pip, and every source hash listed in `PACKAGE_MANIFEST.json`. Outside a virtual environment it performs this user installation without shell interpolation:
 
 ```text
-PYTHON -m pip install --user --no-deps --no-build-isolation --no-index VERIFIED_LOCAL_WHEEL
+PYTHON -m pip install --no-deps --no-build-isolation --no-index --user VERIFIED_LOCAL_WHEEL
 ```
 
-Inside an active virtual environment, bootstrap intentionally omits `--user` and installs into that environment. It never requests administrator privileges.
+For a PEP 668 `EXTERNALLY-MANAGED` interpreter, bootstrap locates the marker through the selected interpreter's `sysconfig` and probes that same pip with `pip install --help`. If and only if pip advertises the option, the executable plan combines the user scope and override:
+
+```text
+PYTHON -m pip install --no-deps --no-build-isolation --no-index --user --break-system-packages VERIFIED_LOCAL_WHEEL
+```
+
+This remains a current-user install; bootstrap never uses the override without `--user`. If the marker check fails, pip help fails, or the option is absent, both dry-run and installation fail closed with `install_command_executable: false` and no wheel build or pip mutation. Inside an active virtual environment, bootstrap checks neither the base interpreter marker nor the override, omits `--user`, and installs into that environment. It never requests administrator privileges.
+
+For every pip subprocess, bootstrap removes all inherited `PIP_*` variables, `PYTHONUSERBASE`, and `PYTHONNOUSERSITE`, then sets only `PIP_DISABLE_PIP_VERSION_CHECK=1`, `PIP_NO_INDEX=1`, and `PIP_CONFIG_FILE` to the platform null device. Environment values such as `PIP_TARGET`, `PIP_PREFIX`, `PIP_ROOT`, `PIP_USER`, or `PIP_BREAK_SYSTEM_PACKAGES` therefore cannot silently change the reviewed argv or redirect the user installation.
+
+对于 Homebrew 等带有 `EXTERNALLY-MANAGED` 标记的 Python，安装器只会在当前 pip 明确支持时，把 `--user` 与 `--break-system-packages` 成对加入安装命令。无法确认时会在修改前停止。若这种用户级 override 安装随后失败，bootstrap 不会自动调用没有 `--user` 范围的 `pip uninstall`；它会报告 `externally_managed_no_automatic_cleanup`，等待检查和另行授权。
 
 同版本重复执行时会从刚通过 manifest 校验的源码强制重装，避免继续运行同版本但来源不明、残缺或已被修改的旧包；发现较旧版本时必须显式增加 `--upgrade`；发现已安装版本比源码新时拒绝降级。bootstrap 不会把 pip 的隐式行为当成升级策略。
 
-After installation it clears `PYTHONPATH`/`PYTHONHOME`, changes to a temporary directory outside the checkout, verifies that the imported module is not the repository copy, and then verifies `python -m claude_code_recover --version`, `doctor --no-default-sources`, `guide --no-default-sources`, canonical distribution metadata, and the one-RC legacy module alias. It does not depend on the console script being present in `PATH`.
+After installation it clears Python path/user-site overrides, changes to a temporary directory outside the checkout, verifies that the imported module is not the repository copy, and then verifies `python -m claude_code_recover --version`, `doctor --no-default-sources`, `guide --no-default-sources`, canonical distribution metadata, and the legacy transition module alias. It does not depend on the console script being present in `PATH`.
 
 安装完成后，它会验证版本、`doctor` 与 `guide`，不会因为用户级脚本目录没有加入 `PATH` 而误报安装失败。
 
@@ -109,9 +119,9 @@ The installer never downloads source updates itself. It cannot silently replace 
 
 ### RC1 name migration / RC1 名称迁移
 
-If `acgm-recover` RC1 is installed, RC2 returns `MIGRATION_REQUIRED` before any pip mutation—even when `--upgrade` is supplied. The response contains a non-executable plan whose uninstall and rerun steps are all marked unauthorized. A user must separately review and authorize removal of the old distribution, then rerun bootstrap from the verified RC2 tree. Cross-distribution uninstall is deliberately not hidden inside `--upgrade` because the two distributions can own overlapping compatibility files.
+If `acgm-recover` RC1 is installed, RC3 returns `MIGRATION_REQUIRED` before any PEP 668 capability probe or pip mutation—even when `--upgrade` is supplied. The response contains a non-executable plan whose uninstall and rerun steps are all marked unauthorized. A user must separately review and authorize removal of the old distribution, then rerun bootstrap from the verified RC3 tree. Cross-distribution uninstall is deliberately not hidden inside `--upgrade` because the two distributions can own overlapping compatibility files.
 
-旧 checkout 地址 `https://github.com/johnrucnapier-sketch/ACGM-Recover` 只用于识别 RC1 来源。不要继续从旧地址安装 RC2。用户另行授权卸载 RC1 后，从 RC2 fresh install 安装的新 distribution 会继续提供旧 CLI `acgm-recover` 与旧 module `python -m acgm_recover`，但兼容入口只保留一个 RC 周期。
+旧 checkout 地址 `https://github.com/johnrucnapier-sketch/ACGM-Recover` 只用于识别 RC1 来源。不要继续从旧地址安装 RC3。用户另行授权卸载 RC1 后，从 RC3 fresh install 安装的新 distribution 会继续提供旧 CLI `acgm-recover` 与旧 module `python -m acgm_recover` 作为过渡入口。
 
 ## Uninstall / 卸载
 

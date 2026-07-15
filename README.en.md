@@ -2,7 +2,7 @@
 
 **When Claude Code, the original account, or the original platform is no longer available, rebuild a trustworthy, explainable, continuable project from surviving local code, Git, worktrees, session metadata, and transcript structure.**
 
-Current version: `0.1.0-rc.2`. The code is now a public development preview. No formal GitHub Release has been published, and a real-friend Claude Code end-to-end acceptance run is still pending.
+Current version: `0.1.0-rc.3`. The code is now a public development preview. No formal GitHub Release has been published, and a real-friend Claude Code end-to-end acceptance run is still pending.
 
 Claude Code Recover is an independent open-source tool. It is not affiliated with, endorsed by, or an official product of Anthropic.
 
@@ -35,6 +35,8 @@ It cannot restore an inaccessible vendor-side Session or recover an account. It 
 
 Only Python 3.10+ (including pip) and Git are required. The installer validates `PACKAGE_MANIFEST.json`, builds a controlled local wheel in a temporary directory using only the Python standard library, then performs an offline user installation. It does not require setuptools/wheel, scan evidence, inspect an account, download dependencies, or select a route.
 
+Bootstrap recognizes PEP 668 `EXTERNALLY-MANAGED` interpreters, including current Homebrew Python. Only when the selected pip explicitly supports it does bootstrap combine `--break-system-packages` with `--user` for the offline user install. Ordinary interpreters and virtual environments never receive that override. If support cannot be verified, bootstrap fails closed before installation and explains the result in JSON.
+
 When an Agent clones and installs in the same task, instruct it to read `AGENTS.md`
 and `SECURITY.md` explicitly after the clone. A newly downloaded instruction file does
 not automatically reload an already-running Agent, and Git clone does not and should
@@ -63,7 +65,7 @@ bin/claude-code-recover verify --bundle "/path/to/new-bundle" --check-sources
 
 The repository wrapper can be replaced by the current interpreter's module entrypoint: commonly `python3 -m claude_code_recover` on macOS/Linux or `py -3 -m claude_code_recover` on Windows. Bootstrap uses the same interpreter that launched it and does not assume a fixed alias.
 
-For one RC cycle, RC2 keeps the RC1 compatibility aliases `acgm-recover` and `python -m acgm_recover`. They are legacy; new documentation and automation must use the canonical names. When the old distribution is detected, bootstrap returns a non-executable `MIGRATION_REQUIRED` plan before any mutation; cross-distribution uninstall is never hidden inside `--upgrade`. The old repository URL `https://github.com/johnrucnapier-sketch/ACGM-Recover` is documented only to identify or migrate an old checkout, not as the RC2 installation source.
+RC3 continues to provide the RC1 transition aliases `acgm-recover` and `python -m acgm_recover`. They are legacy; new documentation and automation must use the canonical names. When the old distribution is detected, bootstrap returns a non-executable `MIGRATION_REQUIRED` plan before any mutation; cross-distribution uninstall is never hidden inside `--upgrade`. The old repository URL `https://github.com/johnrucnapier-sketch/ACGM-Recover` is documented only to identify or migrate an old checkout, not as the RC3 installation source.
 
 Default source locations target macOS. On Linux or custom layouts, use `--no-default-sources` with explicit `--claude-projects-root`, `--metadata-root`, and `--auxiliary-root` values.
 

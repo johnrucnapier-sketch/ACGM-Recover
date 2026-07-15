@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.1.0-rc.2 — Unreleased
+## 0.1.0-rc.3 — Unreleased
+
+- Fixed automatic user installation on PEP 668 `EXTERNALLY-MANAGED` interpreters such as current Homebrew Python by detecting the marker and pairing pip's supported override with `--user`.
+- Added fail-closed dry-run/JSON reporting when the marker or pip capability cannot be verified; inherited `PIP_*` and Python user-site redirection variables are removed.
+- Preserved `MIGRATION_REQUIRED` as the earlier, zero-mutation RC1 distribution gate and disabled automatic uninstall after a failed externally-managed user install.
+- Added ordinary-interpreter, virtual-environment, supported/unsupported PEP 668, rollback, and dual-Python regression coverage.
+
+## 0.1.0-rc.2 — Public development preview
 
 - Renamed the product to Claude Code Recover so the recovery target is explicit: Claude Code project continuity, not an ACGM installation.
 - Moved the canonical repository contract to `johnrucnapier-sketch/Claude-Code-Recover`.
@@ -11,7 +18,7 @@
 
 ## 0.1.0-rc.1 — Development preview
 
-- Added the original cross-platform `python -m acgm_recover` entrypoint, now retained as an RC2 legacy alias.
+- Added the original cross-platform `python -m acgm_recover` entrypoint, now retained as a legacy transition alias.
 - Added an offline `guide` command that reports observable capabilities, requires explicit route input, and never inspects account/provider/model identity.
 - Added an offline, user-scoped `scripts/bootstrap.py` installer with dry-run, source-manifest validation, post-install verification, and failure cleanup guidance.
 - Added Agent-assisted clone/install instructions while keeping evidence discovery and route confirmation as separate authorizations.

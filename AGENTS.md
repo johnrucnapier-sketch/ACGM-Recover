@@ -9,7 +9,8 @@ Claude Code Recover is an independent, offline, evidence-first Claude Code proje
 - A `--route` argument records an explicit CLI input; the agent must still show it to the user and obtain confirmation before recovery work.
 - Do not add runtime networking, telemetry, update checks, dependency downloads, or shell-based command construction.
 - Keep bootstrap version behavior explicit: the same canonical version is force-reinstalled from the newly verified snapshot, older canonical installs require `--upgrade`, newer installs are never silently downgraded, active virtual environments must not receive `--user`, and an RC1 `acgm-recover` distribution must return `MIGRATION_REQUIRED` before any mutation.
-- Use `claude-code-recover` / `python -m claude_code_recover` as canonical RC2 entrypoints. Keep `acgm-recover` / `python -m acgm_recover` working only as the documented one-RC compatibility aliases.
+- Outside virtual environments, detect the PEP 668 marker before installation. Use `--break-system-packages` only when the selected pip advertises it and the canonical install command also contains `--user`; otherwise fail closed before mutation. If that override path fails, do not run an automatic uninstall because pip uninstall has no equivalent `--user` scope.
+- Use `claude-code-recover` / `python -m claude_code_recover` as canonical RC3 entrypoints. Keep `acgm-recover` / `python -m acgm_recover` working only as documented transition aliases.
 - Use only synthetic fixtures in tests. Never commit real transcripts, credentials, account identifiers, or private absolute paths.
 - On Windows, only bootstrap, installation, `--version`, `doctor`, and `guide` are currently in scope. Do not run or claim support for core `discover`, `inspect`, `build`, or `verify` until the Windows filesystem and Git safety port is complete.
 
