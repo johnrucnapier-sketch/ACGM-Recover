@@ -26,15 +26,15 @@
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "AGENTS.md",
-      "sha256": "dcd656d40eedf1c9e61083b3f75485324dc3ff937f15ad8ec1e79a72f3a07b5a",
-      "size": 2141
+      "sha256": "d0824e2f185fc249a771f20ff1a403ec78129900054d08e4bcc079f1646862f7",
+      "size": 2493
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "CHANGELOG.md",
-      "sha256": "c46dc674527922db2786e275e4c1061c1080e1c3893bc03dcbb7530ebabc3b31",
-      "size": 3134
+      "sha256": "6e56bc14310d699fcccbe0d94aea731496972809fd8a847e1e9e284970086dfd",
+      "size": 3842
     },
     {
       "license": "CC-BY-4.0",
@@ -75,22 +75,22 @@
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "README.en.md",
-      "sha256": "3bf3f9f4b507d8da4d17a5eea5bf0f01a33f1383435a93539b73bb935547d5e9",
-      "size": 10379
+      "sha256": "2d5469fb890246d0a62b01b8fa33a0081e23bcddb4c9b26e83017ad758a517fd",
+      "size": 10799
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "README.md",
-      "sha256": "6c66e0e5f6d0ff8c2cd643243e82b22586ca2e61ac0296e758f5d313e672cfe4",
-      "size": 12285
+      "sha256": "ef87f8c03bc83dfaa638924b058eb00b27b2ca0066bd264f2fd333771931c44f",
+      "size": 12650
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "RELEASING.md",
-      "sha256": "3b45db8a06e7bd3d47467906cd10f370cd300809a42dc3b0f4c17d350f8fc38c",
-      "size": 1913
+      "sha256": "0c20b29a2fba36959d870721ef3d483bb1467650a9d8cf0bf08bdd2a5e47f1b1",
+      "size": 2214
     },
     {
       "license": "MIT",
@@ -103,14 +103,14 @@
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "SECURITY.md",
-      "sha256": "a393c1b4d785e593c31f57f45dceda77648bfdcd44626fddded0506e51e33c34",
-      "size": 7736
+      "sha256": "3fe67fd4e38ebd52f03b03b305247eb70a84dd493d906f874cb63fcbd7fac3ab",
+      "size": 8486
     },
     {
       "license": "MIT",
       "mode": "0644",
       "path": "VERSION",
-      "sha256": "b0b5813e7156d4ad22becc185a387f84a901d471c07592ecd5d4cf48e601b60d",
+      "sha256": "93f893b9b51cd2ee055332a64d4656e5bbbb652788acbaeaa7d1a6b32099d23f",
       "size": 11
     },
     {
@@ -131,15 +131,15 @@
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "docs/CLI_REFERENCE.md",
-      "sha256": "f6a7556f3b0a1bc2ed979d22c558257d9415034810884c8d959d51cd39cd56b4",
-      "size": 5832
+      "sha256": "21ee8a74c4c7d453bf93cbf05f1da76a61be2606cbabace24e4cfa0f54437329",
+      "size": 5823
     },
     {
       "license": "CC-BY-4.0",
       "mode": "0644",
       "path": "docs/INSTALLATION.md",
-      "sha256": "f7b774a9b36f6f83c0470f9f10f1b15e3d40d8e9e87a83b0959138ab4d5e4e7a",
-      "size": 8434
+      "sha256": "28fc1fa59b1245b02a90f51c1eb903fb0aced0f694da4d82332d0e2016715b5d",
+      "size": 10045
     },
     {
       "license": "CC-BY-4.0",
@@ -152,15 +152,15 @@
       "license": "MIT",
       "mode": "0644",
       "path": "pyproject.toml",
-      "sha256": "81aa10cae7fd521c3474a7c417415bd351ab0cbce1fd8a2494667ff6120fad2c",
+      "sha256": "b824c2f6a3c5db6e4453b95674735c74b41a75fced343ca4e54db331ad117ea9",
       "size": 1147
     },
     {
       "license": "MIT",
       "mode": "0755",
       "path": "scripts/bootstrap.py",
-      "sha256": "c78999ee0ea58721dcd2e504f05d29c0d36dfbae620d8513ebd7b506d0d3d838",
-      "size": 26804
+      "sha256": "bf8a10616c146476f1320b0c1e18d6ceb508fc7fa6093ad732255c6946c7cc26",
+      "size": 35200
     },
     {
       "license": "MIT",
@@ -180,8 +180,8 @@
       "license": "MIT",
       "mode": "0755",
       "path": "scripts/release_check.py",
-      "sha256": "ffc8245ea1641bf9685403e48e2a742de0721762644b094e9908de7bf59b0ca5",
-      "size": 10835
+      "sha256": "69169d89e79d6434ca9d037aaeebfd2c4e83715d3b0aa8aa5f33f2010b2a84c0",
+      "size": 11219
     },
     {
       "license": "MIT",
@@ -306,7 +306,7 @@
       "license": "MIT",
       "mode": "0644",
       "path": "src/claude_code_recover/constants.py",
-      "sha256": "6b5b311548ae2490a4dffad05c1120433005b79c15d77d51de70038c4f224936",
+      "sha256": "6c6fefe1d6852556837ba776ad8c81df3d99cf7bc1fb43de40c3bcbe879ea287",
       "size": 2454
     },
     {
@@ -376,8 +376,8 @@
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_bootstrap.py",
-      "sha256": "6b7abf9f21e8b46e2d3211633dd7390afbac7351d6c94f9fbe9b58299b6ef312",
-      "size": 13385
+      "sha256": "02cfa4e9c2bdfd76e47093c977d2a504b07431f543478b2cb82736d4e3f9e4a7",
+      "size": 27232
     },
     {
       "license": "MIT",
@@ -390,7 +390,7 @@
       "license": "MIT",
       "mode": "0644",
       "path": "tests/test_onboarding.py",
-      "sha256": "62abe395a1a5c4caeea50bcfe4efec0638ce6765552e9bbfbc5cace8ef651ca0",
+      "sha256": "8f7c32dc7e41498ac2fed7e40807a365bb6a94c4334664bda2857f9e9cd2cdc0",
       "size": 7489
     },
     {
@@ -431,5 +431,5 @@
   ],
   "package": "claude-code-recover",
   "schema_version": "1.0",
-  "version": "0.1.0-rc.2"
+  "version": "0.1.0-rc.3"
 }

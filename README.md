@@ -2,7 +2,7 @@
 
 **当 Claude Code、原账号或原平台已经不可用时，从幸存的本机代码、Git、worktree、Session metadata 和 transcript 结构中，重建一个可信、可解释、可继续开发的项目。**
 
-当前版本：`0.1.0-rc.2`。代码现作为公开开发预览；尚未发布正式 GitHub Release，也尚未经过真实 Claude Code 朋友端到端验收。
+当前版本：`0.1.0-rc.3`。代码现作为公开开发预览；尚未发布正式 GitHub Release，也尚未经过真实 Claude Code 朋友端到端验收。
 
 Claude Code Recover 是独立开源工具，与 Anthropic 不存在隶属关系，也不代表 Anthropic 的官方产品或背书。
 
@@ -34,6 +34,8 @@ Claude Code Recover 不是事前备份，也不是把聊天导成 HTML。
 ## 从 GitHub 安装
 
 安装前只要求 Python 3.10+（含 pip）和 Git。安装器会先校验 `PACKAGE_MANIFEST.json`，再用 Python 标准库在临时目录构建受控本地 wheel，并以当前用户身份离线安装；不要求预装 setuptools/wheel，不会扫描证据、读取账号、联网下载依赖或自动选择路线。
+
+安装器会识别 PEP 668 `EXTERNALLY-MANAGED` Python（包括当前 Homebrew Python）。只有在当前 pip 明确支持时，它才会把 `--break-system-packages` 与 `--user` 同时用于离线用户级安装；普通 Python 和虚拟环境不会使用该 override。无法确认支持时会在任何安装修改前失败关闭，并在 JSON 中说明检测结果。
 
 让 Agent 在同一任务中代为下载和安装时，必须明确要求它在 clone 完成后主动读取
 `AGENTS.md` 与 `SECURITY.md`。新下载的仓库规则不会让已经运行中的 Agent 自动重载，
@@ -73,7 +75,7 @@ bin/claude-code-recover verify \
 
 仓库 wrapper 之外也可以使用当前解释器的 module 入口：macOS/Linux 常见写法是 `python3 -m claude_code_recover`，Windows 常见写法是 `py -3 -m claude_code_recover`。安装器实际使用的是启动它的同一个 Python，不依赖某个固定别名。
 
-RC2 为已有 RC1 安装保留一个发布周期的兼容别名：旧命令 `acgm-recover`、旧 module `python -m acgm_recover` 仍可使用，但已标记为 legacy；新文档和自动化必须使用 canonical 名称。检测到旧 distribution 时，bootstrap 会在任何修改前返回非可执行的 `MIGRATION_REQUIRED` 计划，不会把跨 distribution 卸载藏进 `--upgrade`。旧仓库地址 `https://github.com/johnrucnapier-sketch/ACGM-Recover` 仅用于识别和迁移旧 checkout，不是 RC2 的安装地址。
+RC3 继续为已有 RC1 安装保留过渡兼容别名：旧命令 `acgm-recover`、旧 module `python -m acgm_recover` 仍可使用，但已标记为 legacy；新文档和自动化必须使用 canonical 名称。检测到旧 distribution 时，bootstrap 会在任何修改前返回非可执行的 `MIGRATION_REQUIRED` 计划，不会把跨 distribution 卸载藏进 `--upgrade`。旧仓库地址 `https://github.com/johnrucnapier-sketch/ACGM-Recover` 仅用于识别和迁移旧 checkout，不是 RC3 的安装地址。
 
 当前默认本机数据路径针对 macOS；Linux 或自定义位置可显式传入：
 

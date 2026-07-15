@@ -12,8 +12,10 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
+import sysconfig
 import tempfile
 import zipfile
 from pathlib import Path, PurePosixPath
@@ -115,7 +117,13 @@ def _safe_text(value: str) -> str:
 
 
 def _run(arguments: list[str], *, cwd: Path = ROOT) -> subprocess.CompletedProcess[str]:
-    environment = os.environ.copy()
+    # No inherited pip setting may change the target, scope, index, isolation,
+    # or override behavior represented by the reviewed argv.
+    environment = {
+        key: value
+        for key, value in os.environ.items()
+        if not key.upper().startswith("PIP_")
+    }
     environment.update(
         {
             "PIP_DISABLE_PIP_VERSION_CHECK": "1",
@@ -123,12 +131,12 @@ def _run(arguments: list[str], *, cwd: Path = ROOT) -> subprocess.CompletedProce
             "PIP_CONFIG_FILE": os.devnull,
         }
     )
-    environment.pop("PIP_INDEX_URL", None)
-    environment.pop("PIP_EXTRA_INDEX_URL", None)
     # Neither installation nor post-install verification may import the
     # checkout through caller-provided Python path configuration.
     environment.pop("PYTHONPATH", None)
     environment.pop("PYTHONHOME", None)
+    environment.pop("PYTHONUSERBASE", None)
+    environment.pop("PYTHONNOUSERSITE", None)
     return subprocess.run(
         arguments,
         cwd=cwd,
@@ -320,9 +328,129 @@ def _prerequisites() -> dict[str, Any]:
     }
 
 
-def _rollback(previous_version: str | None) -> dict[str, Any]:
+def _externally_managed_marker_present() -> bool:
+    """Apply the PEP 668 marker lookup without reading marker contents."""
+
+    scheme = sysconfig.get_default_scheme()
+    standard_library = sysconfig.get_path("stdlib", scheme)
+    if not standard_library:
+        raise OSError("stdlib_path_unavailable")
+    marker = Path(standard_library) / "EXTERNALLY-MANAGED"
+    try:
+        marker_stat = marker.stat()
+    except FileNotFoundError:
+        return False
+    # Any other OSError propagates to the fail-closed policy.  Treat any
+    # unexpected object type as invalid rather than enabling a risky override.
+    if not stat.S_ISREG(marker_stat.st_mode):
+        raise OSError("externally_managed_marker_not_regular")
+    return True
+
+
+def _pip_install_break_system_packages_support() -> tuple[bool | None, str]:
+    """Probe the selected pip's install options without mutating any state."""
+
+    process = _run([sys.executable, "-m", "pip", "install", "--help"])
+    if process.returncode != 0:
+        return None, "capability_check_failed"
+    output = f"{process.stdout}\n{process.stderr}"
+    if re.search(r"(?m)^\s*--break-system-packages(?:\s|$)", output):
+        return True, "supported"
+    return False, "unsupported"
+
+
+def _installation_environment(in_virtual_environment: bool) -> dict[str, Any]:
+    """Build a fail-closed install policy for the selected interpreter."""
+
+    base: dict[str, Any] = {
+        "policy": "pep668_user_scope_v1",
+        "in_virtual_environment": in_virtual_environment,
+        "install_scope": (
+            "virtual_environment" if in_virtual_environment else "current_user"
+        ),
+        "user_scope_flag_enabled": not in_virtual_environment,
+        "externally_managed_marker_checked": not in_virtual_environment,
+        "externally_managed": False,
+        "pip_break_system_packages_check": "not_required",
+        "pip_break_system_packages_support_checked": False,
+        "pip_break_system_packages_supported": None,
+        "pip_break_system_packages_enabled": False,
+        "safe_install_plan_available": True,
+        "network_used": False,
+    }
+    if in_virtual_environment:
+        base["status"] = "virtual_environment"
+        return base
+
+    try:
+        externally_managed = _externally_managed_marker_present()
+    except (OSError, TypeError, ValueError):
+        base.update(
+            {
+                "status": "externally_managed_marker_check_failed",
+                "externally_managed": None,
+                "safe_install_plan_available": False,
+            }
+        )
+        return base
+    base["externally_managed"] = externally_managed
+    if not externally_managed:
+        base["status"] = "ordinary_interpreter"
+        return base
+
+    supported, check_status = _pip_install_break_system_packages_support()
+    base.update(
+        {
+            "pip_break_system_packages_check": check_status,
+            "pip_break_system_packages_support_checked": True,
+            "pip_break_system_packages_supported": supported,
+            "pip_break_system_packages_enabled": supported is True,
+            "safe_install_plan_available": supported is True,
+            "status": (
+                "externally_managed_user_override_supported"
+                if supported is True
+                else "externally_managed_user_override_unavailable"
+            ),
+        }
+    )
+    return base
+
+
+def _rollback(
+    previous_version: str | None,
+    *,
+    installation_environment: dict[str, Any],
+) -> dict[str, Any]:
     current_distributions = _installed_distribution_versions()
     uninstall = [sys.executable, "-m", "pip", "uninstall", "-y", PACKAGE]
+    externally_managed_user_install = bool(
+        installation_environment.get("user_scope_flag_enabled") is True
+        and installation_environment.get("pip_break_system_packages_enabled") is True
+    )
+    # pip uninstall does not support --user, so it cannot prove that removal is
+    # limited to the user scheme.  Never turn the install override into a
+    # broader automatic cleanup command.
+    if externally_managed_user_install:
+        current_version = None
+        if current_distributions is not None:
+            current_version = current_distributions.get(PACKAGE) or current_distributions.get(
+                LEGACY_PACKAGE
+            )
+        return {
+            "status": "externally_managed_no_automatic_cleanup",
+            "previous_version": previous_version,
+            "current_version": current_version,
+            "installed_state_readable": current_distributions is not None,
+            "automatic_cleanup_attempted": False,
+            "pip_break_system_packages_enabled": False,
+            "manual_command_argv": None,
+            "guidance": (
+                "The failed install used a PEP 668 override only with --user. pip uninstall "
+                "has no equivalent --user scope, so bootstrap did not remove anything "
+                "automatically. Inspect the selected interpreter's user installation and "
+                "obtain separate authorization before cleanup."
+            ),
+        }
     if current_distributions is None:
         return {
             "status": "installed_state_unavailable_no_automatic_cleanup",
@@ -333,6 +461,8 @@ def _rollback(previous_version: str | None) -> dict[str, Any]:
                 "No automatic uninstall was attempted; inspect the interpreter state first."
             ),
             "manual_command_argv": _display_command(uninstall),
+            "automatic_cleanup_attempted": False,
+            "pip_break_system_packages_enabled": False,
         }
     current_version = current_distributions.get(PACKAGE) or current_distributions.get(
         LEGACY_PACKAGE
@@ -350,6 +480,8 @@ def _rollback(previous_version: str | None) -> dict[str, Any]:
             ),
             "installed_state_readable": after is not None,
             "manual_command_argv": _display_command(uninstall),
+            "automatic_cleanup_attempted": True,
+            "pip_break_system_packages_enabled": False,
         }
     return {
         "status": "previous_installation_not_removed",
@@ -357,6 +489,8 @@ def _rollback(previous_version: str | None) -> dict[str, Any]:
         "current_version": current_version,
         "guidance": "Re-run bootstrap from the previously trusted source tree, or uninstall explicitly.",
         "manual_command_argv": _display_command(uninstall),
+        "automatic_cleanup_attempted": False,
+        "pip_break_system_packages_enabled": False,
     }
 
 
@@ -430,19 +564,6 @@ def _verification(route: str | None) -> tuple[dict[str, Any], bool]:
 def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[str, Any], int]:
     prerequisites = _prerequisites()
     in_virtual_environment = sys.prefix != getattr(sys, "base_prefix", sys.prefix) or hasattr(sys, "real_prefix")
-    command = [
-        sys.executable,
-        "-m",
-        "pip",
-        "install",
-        "--no-deps",
-        "--no-build-isolation",
-        "--no-index",
-    ]
-    if not in_virtual_environment:
-        command.append("--user")
-    if upgrade:
-        command.append("--upgrade")
     installed_distributions_before = _installed_distribution_versions()
     if installed_distributions_before is None:
         return {
@@ -451,6 +572,8 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
             "status": "installed_distribution_state_unavailable",
             "dry_run": dry_run,
             "prerequisites": prerequisites,
+            "install_scope": "virtual_environment" if in_virtual_environment else "current_user",
+            "install_command_executable": False,
             "source_version": _source_version(),
             "mutation_performed": False,
             "network_used": False,
@@ -466,19 +589,16 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
     )
     source_version = _source_version()
     version_action, version_allowed = _version_policy(previous_version, source_version, upgrade)
-    if version_action == "same_version_reinstall":
-        command.append("--force-reinstall")
-    command.append("VERIFIED_LOCAL_WHEEL")
     base: dict[str, Any] = {
         "tool": "Claude Code Recover bootstrap",
         "dry_run": dry_run,
         "prerequisites": prerequisites,
-        "install_command_argv": _display_command(command),
         "install_scope": "virtual_environment" if in_virtual_environment else "current_user",
+        "install_command_executable": False,
         "source_version": source_version,
         "installed_version_before": previous_version,
         "installed_distributions_before": installed_distributions_before,
-        "legacy_alias_policy": "provided_by_rc2_for_one_rc_cycle",
+        "legacy_alias_policy": "provided_by_rc3_for_transition_cycle",
         "version_action": version_action,
         "route_argument": route,
         "route_selected_automatically": False,
@@ -527,13 +647,13 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
                             ],
                         },
                         {
-                            "action": "rerun_verified_rc2_bootstrap",
+                            "action": "rerun_verified_rc3_bootstrap",
                             "authorized": False,
                         },
                     ],
                 },
                 "guidance": (
-                    "RC2 will not mutate or uninstall the RC1 distribution automatically. "
+                    "RC3 will not mutate or uninstall the RC1 distribution automatically. "
                     "Obtain separate user authorization for the reviewed migration plan, "
                     "then rerun bootstrap from this verified source tree."
                 ),
@@ -548,11 +668,83 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
         }[version_action]
         base.update({"ok": False, "status": version_action, "guidance": guidance})
         return base, 2
+
+    installation_environment = _installation_environment(in_virtual_environment)
+    base["installation_environment"] = installation_environment
+    if not installation_environment["safe_install_plan_available"]:
+        marker_check_failed = (
+            installation_environment.get("status")
+            == "externally_managed_marker_check_failed"
+        )
+        base.update(
+            {
+                "ok": False,
+                "status": (
+                    "externally_managed_marker_check_failed"
+                    if marker_check_failed
+                    else "externally_managed_user_install_unavailable"
+                ),
+                "mutation_performed": False,
+                "install_command_argv": None,
+                "guidance": (
+                    (
+                        "Bootstrap could not safely determine whether the selected Python "
+                        "has a valid EXTERNALLY-MANAGED marker. Inspect that interpreter or "
+                        "activate a virtual environment, then rerun bootstrap. No "
+                        "installation was attempted."
+                    )
+                    if marker_check_failed
+                    else (
+                        "The selected Python is externally managed, but bootstrap could not "
+                        "verify a supported pip --break-system-packages install option. "
+                        "Use a newer pip for this interpreter or activate a virtual environment, "
+                        "then rerun bootstrap. No installation was attempted."
+                    )
+                ),
+            }
+        )
+        return base, 2
+
+    command = [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--no-deps",
+        "--no-build-isolation",
+        "--no-index",
+    ]
+    if installation_environment["user_scope_flag_enabled"]:
+        command.append("--user")
+    if installation_environment["pip_break_system_packages_enabled"]:
+        if "--user" not in command:
+            base.update(
+                {
+                    "ok": False,
+                    "status": "installation_environment_policy_invalid",
+                    "mutation_performed": False,
+                    "install_command_argv": None,
+                    "guidance": (
+                        "Bootstrap refused an inconsistent PEP 668 plan because the "
+                        "override was not paired with current-user scope."
+                    ),
+                }
+            )
+            return base, 2
+        command.append("--break-system-packages")
+    if upgrade:
+        command.append("--upgrade")
+    if version_action == "same_version_reinstall":
+        command.append("--force-reinstall")
+    command.append("VERIFIED_LOCAL_WHEEL")
+    base["install_command_argv"] = _display_command(command)
+    base["install_command_executable"] = True
     if dry_run:
         base.update(
             {
                 "ok": True,
                 "status": "dry_run_complete_no_changes",
+                "mutation_performed": False,
                 "next_action": "Run the same command without --dry-run after reviewing this plan.",
             }
         )
@@ -572,6 +764,7 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
                 "ok": False,
                 "status": "offline_wheel_build_failed",
                 "error_code": type(error).__name__,
+                "mutation_performed": False,
             }
         )
         return base, 3
@@ -582,7 +775,10 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
                 "status": "pip_install_failed",
                 "pip_exit_code": process.returncode,
                 "error_tail": _safe_text("\n".join(process.stderr.splitlines()[-12:])),
-                "rollback": _rollback(previous_version),
+                "rollback": _rollback(
+                    previous_version,
+                    installation_environment=installation_environment,
+                ),
             }
         )
         return base, 3
@@ -610,7 +806,10 @@ def install(*, dry_run: bool, route: str | None, upgrade: bool) -> tuple[dict[st
                 "ok": False,
                 "status": "post_install_verification_failed",
                 "verification": verification,
-                "rollback": _rollback(previous_version),
+                "rollback": _rollback(
+                    previous_version,
+                    installation_environment=installation_environment,
+                ),
             }
         )
         return base, 4

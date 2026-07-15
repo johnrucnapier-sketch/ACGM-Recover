@@ -108,7 +108,7 @@ class OnboardingTests(unittest.TestCase):
             {"configured_locations": 0, "visible_directories": 0},
         )
 
-    def test_legacy_module_alias_remains_available_for_rc2(self) -> None:
+    def test_legacy_module_alias_remains_available_for_rc3(self) -> None:
         environment = os.environ.copy()
         environment["PYTHONPATH"] = str(ROOT / "src")
         process = subprocess.run(
@@ -123,7 +123,7 @@ class OnboardingTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(process.returncode, 0, process.stderr)
-        self.assertEqual(process.stdout.strip(), "Claude Code Recover 0.1.0-rc.2")
+        self.assertEqual(process.stdout.strip(), "Claude Code Recover 0.1.0-rc.3")
 
     def test_canonical_repository_wrapper_invokes_cli(self) -> None:
         process = subprocess.run(
@@ -137,7 +137,7 @@ class OnboardingTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(process.returncode, 0, process.stderr)
-        self.assertEqual(process.stdout.strip(), "Claude Code Recover 0.1.0-rc.2")
+        self.assertEqual(process.stdout.strip(), "Claude Code Recover 0.1.0-rc.3")
 
     def test_windows_core_commands_fail_before_source_access(self) -> None:
         commands = (
